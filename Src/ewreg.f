@@ -1,0 +1,32 @@
+
+c     ##############################################################
+c     ##                                                          ##
+c     ##  ewreg.i  --  exponential factors for regular Ewald sum  ##
+c     ##                                                          ##
+c     ##############################################################
+c
+c
+c     maxvec    maximum number of k-vectors per reciprocal axis
+c
+c     ejc       exponental factors for cosine along the j-axis
+c     ejs       exponental factors for sine along the j-axis
+c     ekc       exponental factors for cosine along the k-axis
+c     eks       exponental factors for sine along the k-axis
+c     elc       exponental factors for cosine along the l-axis
+c     els       exponental factors for sine along the l-axis
+c
+c
+      module ewreg
+      use sizes
+      implicit none
+      integer maxvec
+      parameter (maxvec=15)
+      real*8 ejc(maxatm,0:maxvec),ejs(maxatm,0:maxvec)
+      real*8 ekc(maxatm,-maxvec:maxvec)
+      real*8 eks(maxatm,-maxvec:maxvec)
+      real*8 elc(maxatm,-maxvec:maxvec)
+      real*8 els(maxatm,-maxvec:maxvec)
+      integer jmax,kmax,lmax
+      save
+      end
+c
