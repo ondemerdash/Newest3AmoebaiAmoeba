@@ -226,7 +226,6 @@ OBJS = \
        dynamic_3mAMOEBA.o \
        dynamic_3M_AMOEBA.o \
        dynamic_2M_AMOEBA.o \
-       thzuinddyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.o \
        mdsave_writeDyns.o \
        prtdyn_writeDyns.o \
        uind2bmat.o \
@@ -240,12 +239,9 @@ OBJS = \
        uindClustEmpole1plz_3b_NoOmplistRtrn3BNoSubtr1b2bsimult.o \
        uindempole1d_3b_Polar2btest2.o \
        uindempole1d_3b_Polar3btest2.o \
-       uinddyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust5Simult1b2b3b.o \
        pol_loadbal_clust_splitlist_offset_2.o \
        pol_loadbal_clust_splitlist_offset3b_2.o \
        ClustEmpole1plz_2b_NoOmplistRtrn2BNoSubtr1bsimult.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b.o \
        clust_gradient_Polar1b2bsimult_ireducemat_commsmall2.o \
        clust_gradient_Polar1b2b3bsimult_ireducemat_commsmall2.o \
        empole1d_3b_Polar1btest2.o \
@@ -256,7 +252,6 @@ OBJS = \
        ClustEmpole1plz_3b_NoOmplistRtrn3BNoSubtr1b2bsimult.o \
        clust_gradient_Polar1b2b3bsimult_reducemat_commsmall2.o \
        grad_covemrecip_vandr_reduce_totfield_commsmall.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.o \
        clust_gradient_PolarPerm1b2b3bsimult_reducemat_commsmall2.o \
        empole1d_3b_Polar3btest.o \
        ulspred3b.o \
@@ -269,7 +264,6 @@ OBJS = \
        init2bmatmodPolar.o \
        ClustEmpole1_2b_NoOmplistRtrn2BmatNoSubtr1bsimult.o \
        clust_gradient_PolarPerm1b2b3bsimult_reducemat_commsmall.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1b2b3b.o \
        ClustEmpole1_3b_NoOmplistRtrn3BNoSubtr1b2bsimult.o \
        empole1d_3b_PolarPerm3btest.o \
        induce0a_3b_scf_vacomp3bclustlist.o \
@@ -284,7 +278,6 @@ OBJS = \
        nblist_par_simultclust.o \
        loadbal_ehal1c_halftasks_nolistsend_simultclust.o \
        clust_gradient_covvdwPolarPerm1b2b.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1bVdw.o \
        cell1bclust.o \
        boxes1bclust.o \
        cell2bclust.o \
@@ -300,7 +293,6 @@ OBJS = \
        ClustEmpole1_1b_NoOmplistsimult.o \
        ClustEmpole1_2b_NoOmplistsimult.o \
        clust_gradient_PolarPerm1b2bsimult.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1b2b.o \
        init1b2bmatPolarPerm.o \
        deriv2bmat.o \
        pol_loadbal_clust_splitlist_offset.o \
@@ -321,7 +313,6 @@ OBJS = \
        ClustEmpole1_2b_NoOmplist.o \
        empole1d_3b_PolarPerm1b.o \
        empole1d_3b_PolarPerm2b.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmp.o \
        dfield0c_3bPolar_2bclust.o \
        dfield0c_3bPolar_1bclust.o \
        ufield0c_3bPolar.o \
@@ -354,7 +345,6 @@ OBJS = \
        clust_smooth_gradpolar1b2b.o \
        init1bmat.o \
        deriv1bmat.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3.o \
        nblist5kmeansclust.o \
        clustloadbalsmoothInner_1a_2bPolar_vac.o \
        clustnolistsmoothInner_1a_1bPolar_vac.o \
@@ -399,7 +389,6 @@ OBJS = \
        s2btotfieldNpoleloadbalsmoothInner_1a_3bPolar_w1body.o \
        stotfieldloadbalsmooth_findiff_test.o \
        ewpol_loadbal7_clust.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_nopolz.o \
        loadbalsmoothInner_1a_2bPolar_vac.o \
        empole1a2_3b_Polar_totfieldnpole3bmod_dol1_2.o \
        totfieldNpoleloadbalsmoothInner_1c_3bPolar_dEtensorMpi1.o \
@@ -416,7 +405,6 @@ OBJS = \
        torque3_dEtensor_72015_taunew3_pt2_vir_fewertens.o \
        grad_covemrecip_vandr_reduce_totfield_dEtensor_vir3_fewertens.o \
        grad_covemrecip_vandr_reduce_totfield_dEtensor_vir3_notenssends_fewertens2.o \
-       dEtensor_test_nolistsend_separatereduce_funcdecomp_NN2b.o \
        totfieldNpoleloadbalsmoothInner_1c_2bPolar_dEtensorMpi.o \
        tensdealloc.o \
        Newempole1c_3bPolar_totfield_dEtensor_fewertens.o \
@@ -445,23 +433,16 @@ OBJS = \
        grad_covemrecip_vandr_reduce_totfield_dEtensor_vir3.o \
        cutoffs_ewald_short.o \
        ewpol_loadbal7.o \
-       dEtensor_test_nolistsend_separatereduce_funcdecomp_NN.o \
        nblist2_hbond.o \
        nblist2_test.o \
        nblist4_com.o \
        nblist3_com.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust2com.o \
-       pme3bsmalldyn_rOMP_kBcast.o \
        clustnolistsmoothInner_1c_3bPolar_vac.o \
        nblist4.o \
        nblist3.o \
        mpidat2.o \
-       dEtensor_test_nolistsend_separatereduce_funcdecomp_no3bmut.o \
        grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2_no3bmut.o \
        moments_onlyDipole_fixedcharge.o \
-       runmoments.o \
-       uinddyn_rMPIOMP_kBcast_rloadbal_nocut2.o \
-       uinddyn_rMPIOMP_kBcast_rloadbal_nocut.o \
        uindInner_1a_3bPolar_vac.o \
        pmonte_par2.o \
        empole0a_3bPolar_origversion_nopriordirectcalc2.o \
@@ -472,13 +453,10 @@ OBJS = \
        eng_covalent_vdw.o \
        verlet_par_pmonte.o \
        pmonte_par.o \
-       dyn_rMPIOMP_kBcast_rloadbal_pmonte_par.o \
        uindempole1a_3bPolar_origversion_nopriordirectcalc2.o \
        uindloadbalsmoothInner_1a_3bPolar_vac.o \
        uindsmooth_gradpolar.o \
-       uinddyn_rMPIOMP_kBcast_rloadbal.o \
        clust_smooth_gradpolar.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust2.o \
        clustnolistsmoothInner_1a_3bPolar_vac.o \
        clustloadbalsmoothInner_1a_3bPolar_vac.o \
        nblist2.o \
@@ -490,21 +468,16 @@ OBJS = \
        empole1c_3bPolar_totfield_dEtensor.o \
        virialnamoeba.o \
        dfield0a_ufield0a_uscale0a.o \
-       dyn_rMPIOMP_kBcast_rloadbal_Namoeba2.o \
-       dyn_rMPIOMP_kBcast_rloadbal_Namoeba.o \
        empole1a_PolarStripped.o \
        induce0a_nobranch.o \
        torque_pol.o \
-       dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp.o \
        ewpol_loadbal_halftasks.o \
        dEtensor_test_nolistsend_separatereduce_funcdecomp_simultpolz.o \
        loadbalsmoothInner_1a_3bPolar1bmut_halftasks.o \
        loadbalsmoothInner_1a_3bPolar_halftasks.o \
        loadbalsmoothInner_1a_3bPolar_vac.o \
        loadbalsmoothInner_1a_3bPolar1bmut.o \
-       dEtensor_test_nolistsend_separatereduce_funcdecomp_noEast.o \
        dfield0b_totfield.o \
-       totfield_dyn_rMPIOMP_kBcast.o \
        LoadBalInner_r_Perm_nolistsend.o \
        grad_covemrecip_vandr_reduce_totfield.o \
        empole1a_3bPolar_origversion_nopriordirectcalc_rtrnfield.o \
@@ -531,10 +504,8 @@ OBJS = \
        emrecip1_3b_Polar_usemlist_direct_test.o \
        empole1d_3b_PolarPerm_selfeng_bcast2.o \
        grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2.o \
-       dEtensor_test_nolistsend_separatereduce_funcdecomp.o \
        bcast_cov.o \
        grad_r_allreduce_totfield_dEtensor_vir.o \
-       AllreducedEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.o \
        thg6_small_vir_nolistsend.o \
        grad_vandr_ireduce_totfield_dEtensor_vir.o \
        grad_vandr_ireduce_totfield_dEtensor_vir2.o \
@@ -542,19 +513,16 @@ OBJS = \
        nblist3b_1list_par_newesttink7.o \
        chkpole_omp.o \
        rotpole_omp.o \
-       dEtensor_test_nolistsend_separatereduce.o \
        grad_vandr_reduce_totfield_dEtensor_vir2.o \
        nblist_par.o \
        loadbal_ehal1c_halftasks_nolistsend.o \
        thg5_small_vir_nolistsend.o \
-       dEtensor_test_nolistsend.o \
        kewald_eastman_list.o \
        chunklight.o \
        pmestuff_list.o \
        v_loadbal_halftasks.o \
        loadbal_ehal1c_halftasks.o \
        grad_vandr_reduce_totfield_dEtensor_vir.o \
-       dEtensor_test.o \
        empole1c_3bPolar_totfield_dEtensor1b_nouselist_mpivir.o \
        torque3_dEtensor_72015_taunew2_pt1_vir.o \
        torque3_dEtensor_72015_taunew2_pt2_vir.o \
@@ -575,7 +543,6 @@ OBJS = \
        emrecip1_3b_Perm2_totfield_mpi_fphimpole.o \
        dEtensorewtotfield_dyn_rMPIOMP_kMPIgridmpoleBcast_rloadbal_vMPIOMP.o \
        dEtensorewtotfield_dyn_rMPIOMP_kMPIfphimpoleBcast_rloadbal_vMPIOMP.o \
-       smalldyn_rOMP_kBcast.o \
        nose_tuckerman06_par.o \
        tuckerman06.o \
        grid_mpole_Mpi3amoebaRepo_allreduce.o \
@@ -584,8 +551,6 @@ OBJS = \
        gradient_emrecip_totfield_mpi.o \
        emrecip1_3b_Perm2_totfield_mpi.o \
        fphi_mpole_Mpi3amoebaRepo.o \
-       dEtensorewtotfield_dyn_rMPIOMP_kMPIBcast_rloadbal_vMPIOMP.o \
-       dEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.o \
        kewald_nopmealloc_eastman.o \
        mech_pme4_eastman.o \
        kewald_eastman.o \
@@ -596,7 +561,6 @@ OBJS = \
        loadbal_ehal1c.o \
        gradient_covalent2.o \
        grad_v_reduce.o \
-       dir1bewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.o \
        field_r_reduce_uindcalc.o \
        udirect2b_uinddir_mpi.o \
        LoadBalInnerloop_ereal1d_sentlist2.o \
@@ -607,7 +571,6 @@ OBJS = \
        totfield_smooth_gradpolar_dEtensor.o \
        LoadBalInner_thg4omp_mpi.o \
        grad_r_reduce_totfield_dEtensor.o \
-       dEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal.o \
        grad_r_serial_totfield_dEtensor.o \
        ewtotfieldsmooth2_gradient_polar_serial_dEtensor.o \
        totfieldNpoleloadbalsmoothInner_1c_3bPolar_dEtensor.o \
@@ -618,13 +581,11 @@ OBJS = \
        emrecip1_3b_Polar_usemlist_direct.o \
        empole1d_3b_PolarPerm_selfeng_bcast.o \
        grad_r_reduce_totfield_uindcalc.o \
-       dir1bewtotfield_dyn_rMPIOMP_kBcast_rloadbal.o \
        ereal1d2_3b_totfieldnpole_mlist.o \
        ereal1c2_3b_totfieldnpole_omp.o \
        totfieldNpolesmoothInner_1c_1bPolar2_513_alliter.o \
        totfieldNpolesmoothInner_1c_1bPolar2_513_multiter.o \
        totfieldNpolesmoothInner_1c_1bPolar2_513.o \
-       ewtotfield_dyn_serial.o \
        ewtotfieldsmallsmooth2_gradient_polar_serial.o \
        grad_r_serial_totfield.o \
        sendmlist_load_balanced3_sizelist_serial.o \
@@ -640,13 +601,10 @@ OBJS = \
        totfieldNpoleloadbalsmoothInner_1c_2bPolar.o \
        nblist3b_1list.o \
        alloc3b_vdwlist_1list.o \
-       ewtotfield_dyn_rMPIOMP_kBcast_rloadbal.o \
        totfieldNpolesmoothInner_1c_3bPolar.o \
        totfieldNpoleloadbalsmoothInner_1c_3bPolar.o \
        ereal1d2_3b_totfieldnpole.o \
        r_loadbal2.o \
-       paralleltotfieldloadbalsmooth_virial_test.o \
-       paralleltotfieldloadbalsmooth_findiff_test.o \
        gradient_emrecip_totfield.o \
        gradient_emrecip_totfield_send.o \
        emrecip1_3b_Perm2_totfield.o \
@@ -654,7 +612,6 @@ OBJS = \
        grad_r_reduce_totfield.o \
        pmestuff_3bpolz_totfield_pt2.o \
        pmestuff_3bpolz_totfield.o \
-       totfieldloadbalsmooth_virial_test.o \
        dfield0c_totfield.o \
        dfield0a_totfield.o \
        ereal1c1_3b_totfieldnpole.o \
@@ -668,15 +625,12 @@ OBJS = \
        torque3_Polar.o \
        torque_3b_new_npole.o \
        totfield.o \
-       totfieldloadbalsmooth_findiff_test.o \
        totfield_smooth_gradpolar.o \
        fft3d_3b.o \
        kewald3b.o \
        pmestuff_3bpolz.o \
        emrecip1_3b_Polar.o \
        All2bAll3bNew2smooth_innerloop_empole1a_3b.o \
-       loadbalsmooth_findiff_test.o \
-       loadbalsmooth_virial_test.o \
        ewreg3bpolz.o \
        kewaldreg3b.o \
        ewpol_loadbal.o \
@@ -686,11 +640,8 @@ OBJS = \
        moments_onlyDipole.o \
        get_ntask_r.o \
        r_loadbal.o \
-       dyn_rMPIOMP_kBcast_rloadbal.o \
        emreal_load_balance.o \
        sendmlist_load_balanced2.o \
-       dyn_rMPIOMP_kReduce.o \
-       dyn_rMPIOMP_kBcast.o \
        sendmlist_load_balanced.o \
        LoadBalInner_r_Perm.o \
        loadbalsmoothInner_1a_3bPolar.o \
@@ -700,8 +651,6 @@ OBJS = \
        torque_Perm.o \
        nolistcom_smooth2b_innerloop_empole1a_3b.o \
        ptest_parallel.o \
-       nosmooth_virial_test.o \
-       smooth_virial_test.o \
        emrecip1PermReduce.o \
        mech_pme4.o \
        kewald_nopmealloc.o \
@@ -713,8 +662,6 @@ OBJS = \
        parewreg.o \
        kewaldreg.o \
        ewreg.o \
-       findiff_test.o \
-       smooth_findiff_test.o \
        smooth2b_gradient_polar.o \
        smooth_gradpolar.o \
        grad_r_reduce.o \
@@ -1262,59 +1209,6 @@ EXEFILES = \
            dynamic_3mAMOEBA.x \
            dynamic_3M_AMOEBA.x \
            dynamic_2M_AMOEBA.x \
-           thzuinddyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.x \
-           uinddyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust5Simult1b2b3b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust4Simult1b2b3b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1b2b3b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1bVdw.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmpSimult1b2b.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3TinkEmp.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_nopolz.x \
-           dEtensor_test_nolistsend_separatereduce_funcdecomp_NN2b.x \
-           dEtensor_test_nolistsend_separatereduce_funcdecomp_NN.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust2com.x \
-           pme3bsmalldyn_rOMP_kBcast.x \
-           dEtensor_test_nolistsend_separatereduce_funcdecomp_no3bmut.x \
-           runmoments.x \
-           uinddyn_rMPIOMP_kBcast_rloadbal_nocut2.x \
-           uinddyn_rMPIOMP_kBcast_rloadbal_nocut.x \
-           dyn_rMPIOMP_kBcast_rloadbal_pmonte_par.x \
-           uinddyn_rMPIOMP_kBcast_rloadbal.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust2.x \
-           dyn_rMPIOMP_kBcast_rloadbal_Namoeba2.x \
-           dyn_rMPIOMP_kBcast_rloadbal_Namoeba.x \
-           dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp.x \
-           dEtensor_test_nolistsend_separatereduce_funcdecomp_noEast.x \
-           totfield_dyn_rMPIOMP_kBcast.x \
-           dEtensor_test_nolistsend_separatereduce_funcdecomp.x \
-           AllreducedEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.x \
-           dEtensor_test_nolistsend_separatereduce.x \
-           dEtensor_test_nolistsend.x \
-           dEtensor_test.x \
-           smalldyn_rOMP_kBcast.x \
-           dEtensorewtotfield_dyn_rMPIOMP_kMPIBcast_rloadbal_vMPIOMP.x \
-           dEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.x \
-           dir1bewtotfield_dyn_rMPIOMP_kBcast_rloadbal_vMPIOMP.x \
-           dEtensorewtotfield_dyn_rMPIOMP_kBcast_rloadbal.x \
-           dir1bewtotfield_dyn_rMPIOMP_kBcast_rloadbal.x \
-           ewtotfield_dyn_serial.x \
-           ewtotfield_dyn_rMPIOMP_kBcast_rloadbal.x \
-           paralleltotfieldloadbalsmooth_virial_test.x \
-           paralleltotfieldloadbalsmooth_findiff_test.x \
-           totfieldloadbalsmooth_virial_test.x \
-           totfieldloadbalsmooth_findiff_test.x \
-           dyn_rMPIOMP_kReduce.x \
-           dyn_rMPIOMP_kBcast.x \
-           dyn_rMPIOMP_kBcast_rloadbal.x \
-           loadbalsmooth_findiff_test.x \
-           loadbalsmooth_virial_test.x \
-           nosmooth_virial_test.x \
-           smooth_virial_test.x \
-           findiff_test.x \
-           smooth_findiff_test.x \
            alchemy.x \
            analyze.x \
            anneal.x \
