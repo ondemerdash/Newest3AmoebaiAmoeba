@@ -1,0 +1,48 @@
+Main Executable: 
+  dynamic_3mAMOEBA.f
+Load-balancing routines:
+  v_loadbal_halftasks.f
+  r_loadbal.f
+  pol_loadbal6.f
+  pol_loadbal7.f
+Calculation of energy,gradient,and virial of pairwise-additive potentials:
+  grad_covemrecip_vandr_reduce_totfield.f
+Calculation of energy,gradient,and virial of polarization under truncation of the MBE at 2nd or 3rd order, with standard definition of 1 molecule = 1 body:
+  smooth_gradpolar.f
+  loadbalsmoothInner_1a_2bPolar_vac.f
+  loadbalsmoothInner_1a_3bPolar_vac.f
+
+
+Main Executable: 
+  dynamic_3M_AMOEBA.f
+Load-balancing routines:
+  v_loadbal_halftasks.f
+  r_loadbal.f
+  pol_loadbal_clust_splitlist_offset.f
+  pol_loadbal_clust_splitlist_offset3b_simple.f
+Sub-system specific neighbor lists (after designating subsystems to MPI tasks per load balancing):
+  clust1blists.f
+  clust2blists_offset.f
+  clust3blists_offset.f
+Calculation of energy,gradient,and virial of pairwise-additive potentials:
+  grad_covemrecip_vandr_reduce_totfield_commsmall.f
+Calculation of energy,gradient,and virial of polarization under truncation of the MBE at 2nd or 3rd order, with definition of 1 k-means cluster = 1 body:
+  clust_gradient_Polar1b2b3bsimult_ireducemat_commsmall2.f
+  ClustEmpole1plz_1b_NoOmplist.f
+  ClustEmpole1plz_2b_NoOmplistRtrn2BmatNoSubtr1bsimult.f
+  ClustEmpole1plz_3b_NoOmplistRtrn3BNoSubtr1b2bsimult.f
+
+
+Main Executable:
+   dynamic_iAMOEBA_tensor.f
+Load-balancing routines:
+   v_loadbal_halftasks.f
+   r_loadbal.f
+Calculation of energy,gradient,and virial of pairwise-additive potentials (and energy due to direct polarization):
+   grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2_no3bmut.f
+Calculation and saving of the real-space contribution to the permanent field-gradient tensor for subsequent calculation of polarization forces (with no mutual polarization):
+   ereal1d_Perm_savetensor.f
+Calculation of direct polarization forces and virial:
+   totfield_smooth_gradpolar_dEtensor.f
+   empole1c_3bPolar_totfield_dEtensor1b_nouselist_mpivir.f
+
