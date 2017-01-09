@@ -126,8 +126,6 @@ c      if(taskid.lt.numtasks_emreal2) then
        !call dfield0b_totfield
       else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2)) then
 
-c           call thg5_small_vir_nolistsend(
-c     &   emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
       !t1=mpi_Wtime()
       call LoadBalInnerloop_ereal1d_3b_Perm_nolistsend(
      & emrealt,viremrealt,demrealt)

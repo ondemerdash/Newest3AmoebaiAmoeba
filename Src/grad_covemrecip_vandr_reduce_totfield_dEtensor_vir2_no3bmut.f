@@ -190,26 +190,15 @@ c             print*,"i",i,"j",j,"nelst_recv(i)",nelst_recv(j)
         ! if(int(npole/numtasks_emreal).le.500) then
 c        t1=mpi_Wtime()
 
-           call thg5_small_vir_nolistsend(
+           call ereal1d_Perm_savetensor(
      &   emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
-       !call thg5_small_vir_nolistsend_noewtens2(
-     & !  emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
 
 c        t2=mpi_Wtime()
 c        print*,"TensPermElec Real taskid",taskid,"time=",t2-t1
 
        !print*,"PermElec Real!"
 
-c        call thg6_save_small(
-c     & emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
 
-        ! else
-        !    call thg5_vir(
-     &  !  emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
-c        call thg6_save(
-c     & emrealt,viremrealt,demrealt,fieldnpolet,fieldpnpolet)
-
-        ! end if
 
        !print*,"PermElec Real time w/o MPIReduce,taskid",t4-t3,taskid
       else if((taskid.ge.numtasks_emreal+2)

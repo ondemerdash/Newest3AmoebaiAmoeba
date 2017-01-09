@@ -516,7 +516,7 @@ OBJS = \
        grad_vandr_reduce_totfield_dEtensor_vir2.o \
        nblist_par.o \
        loadbal_ehal1c_halftasks_nolistsend.o \
-       thg5_small_vir_nolistsend.o \
+       ereal1d_Perm_savetensor.o \
        kewald_eastman_list.o \
        chunklight.o \
        pmestuff_list.o \
@@ -1769,7 +1769,7 @@ libtinker.a: ${OBJS}
         grad_vandr_reduce_totfield_dEtensor_vir2.o \
         nblist_par.o \
         loadbal_ehal1c_halftasks_nolistsend.o \
-        thg5_small_vir_nolistsend.o \
+        ereal1d_Perm_savetensor.o \
         kewald_eastman_list.o \
         chunklight.o \
         pmestuff_list.o \
@@ -2732,7 +2732,7 @@ dEtensor_test_nolistsend_separatereduce.o: sizes.o atoms.o bath.o bndstr.o bound
 grad_vandr_reduce_totfield_dEtensor_vir2.o: math.o mpole.o mpidat.o deriv.o energi.o ewald.o virial.o totfield.o polar.o dEtensor.o aprx.o deriv3b.o chgpot.o neigh.o
 nblist_par.o: atoms.o bound.o boxes.o cell.o charge.o iounit.o light.o limits.o mpole.o neigh.o potent.o sizes.o vdw.o mpidat.o
 loadbal_ehal1c_halftasks_nolistsend.o: atomid.o atoms.o bound.o boxes.o cell.o couple.o deriv.o energi.o group.o inter.o iounit.o light.o limits.o molcul.o mutant.o parvdwneigh.o shunt.o sizes.o usage.o vdw.o vdwpot.o virial.o mpidat.o
-thg5_small_vir_nolistsend.o: sizes.o atoms.o boxes.o chgpot.o deriv.o energi.o ewald.o inter.o math.o mpole.o polar.o polpot.o virial.o bound.o pme.o potent.o couple.o neigh.o limits.o mplpot.o potent.o paremneigh.o mpidat.o totfield.o dEtensor.o shunt.o openmp.o
+ereal1d_Perm_savetensor.o: sizes.o atoms.o boxes.o chgpot.o deriv.o energi.o ewald.o inter.o math.o mpole.o polar.o polpot.o virial.o bound.o pme.o potent.o couple.o neigh.o limits.o mplpot.o potent.o paremneigh.o mpidat.o totfield.o dEtensor.o shunt.o openmp.o
 dEtensor_test_nolistsend.o: sizes.o atoms.o bath.o bndstr.o bound.o boxes.o cell.o inform.o iounit.o keys.o mdstuf.o potent.o solute.o stodyn.o usage.o mpidat.o moldyn.o virial.o deriv3b.o molcul.o neigh3b.o mpole.o energi.o polar.o polgrp.o couple.o group.o rgddyn.o files.o atomid.o units.o deriv.o neigh.o totfield.o pme.o chunks.o limits.o dEtensor.o aprx.o vdw.o vdwpot.o mutant.o
 kewald_eastman_list.o: atoms.o bound.o boxes.o chunks.o ewald.o fft.o inform.o iounit.o keys.o limits.o math.o openmp.o pme.o sizes.o chunklight.o
 chunklight.o: atoms.o
