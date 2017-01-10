@@ -699,9 +699,6 @@ c     &           viremreal(i,j)+virev(i,j)
 
             if(taskid.eq.master) then
               call gradient_setup
-c              allocate (derivs(3,n))
-c              call prep_pole
-c              print*,"listbcast=",listbcast
               call allocPermElec1
               call alloc3b_vdwlist_nolist
               call alloc_erecip
@@ -713,17 +710,13 @@ c              print*,"listbcast=",listbcast
 
             end if
 
-c            call mpi_barrier(mpi_comm_world,ierr)
 
-c            call alloc_erecip
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
-c            call mpi_bcast(rpole,13*n,mpi_real8,master,
-c     &       mpi_comm_world,ierr)
             call prep_pole
 
 
@@ -748,49 +741,8 @@ c                 firstload_emreal = .false.
                    call emreal_load_balance_sizelist_mol
                   end if
                 end if
-ccc             print*,"In verlet/nose/beeman setup,after emreal list shit"
-ccc            else if(taskid.eq.master2
-ccc     &                .and.(approxmode.ne.'1BODYMODE')) then
-ccc                call mollist2bodyOO6_8_par
-ccc              if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-ccc                firstload_polz = .false.
-ccc                call ewpolar_load_balance
-ccc              end if
            end if
 
-c            if(approxmode.ne.'1BODYMODE') then
-c              if(approxmode.eq.'2BODYMODE') then
-c              call mollist2bodyOO6_8_par_1list_par_newesttink7
-c              else
-c              call mollist2bodyOO6_8_par_1list
-c              end if
-c              if(firstload_polz.and.(taskid.eq.master)) then
-c                call ewpolar_load_balance
-c              end if
-c            end if
-c            call mpi_barrier(mpi_comm_world,ierr)
-
-c            print*,"taskid",taskid,"listsend_mpole",listsend_mpole
-c            print*,"taskid",taskid,"listsend_vdw",listsend_vdw
-c            call mpi_bcast(listsend_vdw,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_mpole,1,mpi_logical,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listbcast,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
-              
-c            if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-c             firstload_polz = .false.
-c             call ewbcast_polar_load_balance
-c            call mpi_bcast(nmollst,nmol,mpi_integer,master,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(mollst,max2blst*nmol,mpi_integer,master,
-c     &       mpi_comm_world,ierr)
-c            end if
-c            listbcast = .false.
-
-c              call mpi_bcast(numtasks_emreal2,1,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
 
             if(firstload_emreal) then
                firstload_emreal = .false.
@@ -800,14 +752,8 @@ c     &             master1,mpi_comm_world,ierr)
      &             master2,mpi_comm_world,ierr)
                call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
-c            listsend_mpole = .false.
 
-c              call mpi_bcast(numtasks_vdw2,1,mpi_integer,
-c     &            numtasks_emreal,mpi_comm_world,ierr)
 
             if(firstload_vdw) then
                 firstload_vdw=.false.
@@ -817,110 +763,17 @@ c     &            numtasks_emreal,mpi_comm_world,ierr)
      &             numtasks_emreal+2,mpi_comm_world,ierr)
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &             numtasks_emreal+2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_vlst,numtasks_vdw,mpi_integer,
-c     &             master,mpi_comm_world,ierr)
-c               call sendvlist_load_balanced3_sizelist_half
             end if
-c            listsend_vdw = .false.
 
       call grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2no3b
-c            if(approxmode.eq.'1BODYMODE') then
             call mpi_bcast(uind,3*n,mpi_real8,master1,
      &       mpi_comm_world,ierr)
             call mpi_bcast(uinp,3*n,mpi_real8,master1,
      &       mpi_comm_world,ierr)
             call mpi_bcast(ep3b,1,mpi_real8,master1,
      &       mpi_comm_world,ierr)
-c            else
-c            call mpi_bcast(fieldnpole,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(fieldpnpole,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(fphi_totfield,20*npole,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vxx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vyx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vyy_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzy_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzz_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c
-c            call mpi_bcast(thetai1,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(thetai2,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(thetai3,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(qfac,nfft1*nfft2*nfft3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(pmetable,n*nchunk,mpi_integer,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(igrid,3*n,mpi_integer,master1,
-c     &       mpi_comm_world,ierr)
-c            end if
-c      if(taskid.eq.master1) then
-c      call mpi_isend(em,1,mpi_real8,master,1,mpi_comm_world,
-c     &      reqs1,ierr)
-c      call mpi_isend(dem,3*n,mpi_real8,master,2,mpi_comm_world,
-c     &      reqs2,ierr)
-c      call mpi_isend(viremrecip,3*3,mpi_real8,master,3,mpi_comm_world,
-c     &      reqs3,ierr)
-c       print*,"After mpi_isend of emrecip1 vars"
-c
-c      end if
-c      if(taskid.eq.master) then
-c      print*,"Before irecv"
-c      call mpi_irecv(em,1,mpi_real8,master1,1,mpi_comm_world,
-c     &    reqs4,ierr)
-c      call mpi_irecv(dem,3*n,mpi_real8,master1,2,mpi_comm_world,
-c     &    reqs5,ierr)
-c      call mpi_irecv(viremrecip,3*3,mpi_real8,master1,3,mpi_comm_world,
-c     &    reqs6,ierr)
-c       print*,"After irecv"
-c
-c      end if
-
-         !call ewtotfield_gradient_polar(start,start+offset-1,moli1rmndr)
-c            if(approxmode.eq.'1BODYMODE') then
              call ewtotfieldsmooth2_gradient_polar_1body_dEtensor_mpioff
-c            else
-c            call ewtotfieldsmooth2_gradient_polar_load_balanced_dEtensor
-c            end if
-c              if(approxmode.ne.'1BODYMODE') then
-c                if(approxmode.eq.'2BODYMODE') then
-c                  call smooth2b_gradient_polar_load_balanced
-c                else
-c                  call smooth2_gradient_polar_load_balanced
-c                end if
-c              end if
 
-
-c           call mpi_barrier(mpi_comm_world,ierr)
-
-c            listsend_mpole=.false.
-c            call mpi_bcast(em,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(dem,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-
-c           if(uzepmedirpolz) then
-c           call mpi_bcast(dep3b_recip,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(virep3b_recip,3*3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(ep3b_recip,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(virep3b_recip_pt1,3*3,mpi_real8,master,
-c     &       mpi_comm_world,ierr)
-c           end if
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs1,stat,ierr)
@@ -1093,8 +946,6 @@ c              y(6)=y(6)+delx
 c              z(6)=z(6)+delx
              call gradient_setup
              call allocPermElec1
-c             allocate (derivs(3,n))
-             !call prep_pole
              call alloc3b_vdwlist_nolist
              call alloc_erecip
          if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
@@ -1104,8 +955,6 @@ c             allocate (derivs(3,n))
              call alloc_erecip
             end if
             
-c            call mpi_barrier(mpi_comm_world,ierr)
-c            call alloc_erecip
 
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
@@ -1113,8 +962,6 @@ c            call alloc_erecip
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
-           ! call mpi_bcast(rpole,13*n,mpi_real8,master,
-     &     !  mpi_comm_world,ierr)
             call prep_pole
             !call bcast_lattice
 
@@ -1124,7 +971,6 @@ c              print*,"In verlet/nose/beeman setup"
 c              print*,"Before alloc3b_nblist verlet/nose/beeman setup"
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
-c                firstload_vdw=.false.
                 call vdw_load_balance_sizelist_half
               end if
 c             print*,"In verlet/nose/beeman setup,after vdw list shit"
@@ -1132,7 +978,6 @@ c             print*,"In verlet/nose/beeman setup,after vdw list shit"
                call mlist_par
 C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
-c                 firstload_emreal = .false.
                   if(longrangepoldir) then
                    call emreal_load_balance_sizelist
                   else
@@ -1141,56 +986,7 @@ c                 firstload_emreal = .false.
 
                 end if
 
-c             print*,"In verlet/nose/beeman setup,after emreal list shit"
-c            else if(taskid.eq.master2
-c     &                .and.(approxmode.ne.'1BODYMODE')) then
-c                call mollist2bodyOO6_8_par
-c              if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-c                firstload_polz = .false.
-c                call ewpolar_load_balance
-c              end if
            end if
-
-c            if(approxmode.ne.'1BODYMODE') then
-c              if(approxmode.eq.'2BODYMODE') then
-c              call mollist2bodyOO6_8_par_1list_par_newesttink7
-c              else
-c              call mollist2bodyOO6_8_par_1list
-c              end if
-c              if(firstload_polz.and.(taskid.eq.master)) then
-c                call ewpolar_load_balance
-c              end if
-c            end if
-
-c            call mpi_barrier(mpi_comm_world,ierr)
-
-c            if (.not. allocated(fieldnpole))  allocate (fieldnpole(3,n))
-c          if (.not. allocated(fieldpnpole))  allocate (fieldpnpole(3,n))
-c           if (.not.allocated(fphi_totfield))
-c     &        allocate(fphi_totfield(20,npole))
-
-c            call mpi_bcast(listbcast,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_mpole,1,mpi_logical,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_vdw,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
-
-
-c            if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-c             firstload_polz = .false.
-c             call ewbcast_polar_load_balance
-c            call mpi_bcast(nmollst,nmol,mpi_integer,master,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(mollst,max2blst*nmol,mpi_integer,master,
-c     &       mpi_comm_world,ierr)
-c            end if
-
-
-C IF 'listsend_mpole' IS TRUE, REAL-SPACE PERM ELECTROSTATICS NEIGHBORLIST HAS BEEN REBUILT OR BUILT DE NOVO.
-C THEREFORE, LIST MUST BE BROADCAST. ALSO BROADCAST VARIABLES TO DO WITH LOAD BALANCING
-c              call mpi_bcast(numtasks_emreal2,1,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
 
             if(firstload_emreal) then
               firstload_emreal = .false.
@@ -1200,14 +996,8 @@ c     &             master1,mpi_comm_world,ierr)
      &             master2,mpi_comm_world,ierr)
               call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
-c            listsend_mpole = .false.
 
-c              call mpi_bcast(numtasks_vdw2,1,mpi_integer,
-c     &         numtasks_emreal,mpi_comm_world,ierr)
 
             if(firstload_vdw) then
               firstload_vdw = .false.
@@ -1217,17 +1007,12 @@ c     &         numtasks_emreal,mpi_comm_world,ierr)
      &          numtasks_emreal+2,mpi_comm_world,ierr)
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &          numtasks_emreal+2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_vlst,numtasks_vdw,mpi_integer,
-c     &             master,mpi_comm_world,ierr)
-c               call sendvlist_load_balanced3_sizelist_half
             end if
-c            listsend_vdw = .false.
  
 
 
       call grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2no3b
 
-c            if(approxmode.eq.'1BODYMODE') then
             call mpi_bcast(uind,3*n,mpi_real8,master1,
      &       mpi_comm_world,ierr)
             call mpi_bcast(uinp,3*n,mpi_real8,master1,
@@ -1235,95 +1020,8 @@ c            if(approxmode.eq.'1BODYMODE') then
             call mpi_bcast(ep3b,1,mpi_real8,master1,
      &       mpi_comm_world,ierr)
 
-c      if(taskid.eq.master1) then
-c      call mpi_isend(em,1,mpi_real8,master,1,mpi_comm_world,
-c     &      reqs1,ierr)
-c      call mpi_isend(dem,3*n,mpi_real8,master,2,mpi_comm_world,
-c     &      reqs2,ierr)
-c      call mpi_isend(viremrecip,3*3,mpi_real8,master,3,mpi_comm_world,
-c     &      reqs3,ierr)
-c       print*,"After mpi_isend of emrecip1 vars"
-c
-c      end if
-c      if(taskid.eq.master) then
-c      print*,"Before irecv"
-c      call mpi_irecv(em,1,mpi_real8,master1,1,mpi_comm_world,
-c     &    reqs4,ierr)
-c      call mpi_irecv(dem,3*n,mpi_real8,master1,2,mpi_comm_world,
-c     &    reqs5,ierr)
-c      call mpi_irecv(viremrecip,3*3,mpi_real8,master1,3,mpi_comm_world,
-c     &    reqs6,ierr)
-c       print*,"After irecv"
-c      end if
-
-c            else
-c            call mpi_bcast(fieldnpole,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(fieldpnpole,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(fphi_totfield,20*npole,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vxx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vyx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzx_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vyy_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzy_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(vzz_perm,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(thetai1,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(thetai2,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(thetai3,4*bsorder*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(qfac,nfft1*nfft2*nfft3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(pmetable,n*nchunk,mpi_integer,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(igrid,3*n,mpi_integer,master1,
-c     &       mpi_comm_world,ierr)
-c            end if
-         !call ewtotfield_gradient_polar(start,start+offset-1,moli1rmndr)
-
-c            if(approxmode.eq.'1BODYMODE') then
             call ewtotfieldsmooth2_gradient_polar_1body_dEtensor_mpioff
 
-c              if(approxmode.ne.'1BODYMODE') then
-c                if(approxmode.eq.'2BODYMODE') then
-c                  call smooth2b_gradient_polar_load_balanced
-c                else
-c                  call smooth2_gradient_polar_load_balanced
-c                end if
-c              end if
-
-c            call mpi_waitall(6,reqs,stats2,ierr)
-
-c            else
-c            call ewtotfieldsmooth2_gradient_polar_load_balanced_dEtensor
-c            end if
-c            call mpi_barrier(mpi_comm_world,ierr)
-c           call mpi_bcast(em,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(dem,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-
-c           if(uzepmedirpolz) then
-c           call mpi_bcast(dep3b_recip,3*n,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(virep3b_recip,3*3,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)              
-c           call mpi_bcast(ep3b_recip,1,mpi_real8,master1,
-c     &       mpi_comm_world,ierr)
-c           call mpi_bcast(virep3b_recip_pt1,3*3,mpi_real8,master,
-c     &       mpi_comm_world,ierr)
-c           end if
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs1,stat,ierr)
@@ -1352,11 +1050,6 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs18,stat,ierr)
 
             if(taskid.eq.master) then
-c      call mpi_recv(em,1,mpi_real8,master1,1,mpi_comm_world,stat,ierr)
-c      call mpi_recv(dem,3*n,mpi_real8,master1,2,mpi_comm_world,
-c     &     stat,ierr)
-c      call mpi_recv(viremrecip,3*3,mpi_real8,master1,3,mpi_comm_world,
-c     &     stat,ierr)
                if(uzepmedirpolz) then
                  call empole1d_3b_PolarPerm_selfeng_bcast2
                else          
@@ -1488,9 +1181,6 @@ c              end if
              call gradient_setup
              call allocPermElec1
              call alloc3b_vdwlist_nolist
-c             call alloc_erecip
-c            else if(taskid.eq.master1) then
-c             call alloc_erecip
             end if
 
             call alloc_erecip
@@ -1524,23 +1214,8 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
                 end if
            end if
 
-c            if(approxmode.ne.'1BODYMODE') then
-c              if(approxmode.eq.'2BODYMODE') then
-c              call mollist2bodyOO6_8_par_1list_par_newesttink7
-c              else
-c              call mollist2bodyOO6_8_par_1list
-c              end if
-c              if(firstload_polz.and.(taskid.eq.master)) then
-c                call ewpolar_load_balance
-c              end if
-c            end if
 
             call mpi_barrier(mpi_comm_world,ierr)
-
-c            if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-c             firstload_polz = .false.
-c             call ewbcast_polar_load_balance
-c            end if
 
             if(firstload_emreal) then
               firstload_emreal = .false.
@@ -1572,14 +1247,6 @@ c            end if
      &       mpi_comm_world,ierr)
 
             call ewtotfieldsmooth2_gradient_polar_1body_dEtensor_mpioff
-
-c              if(approxmode.ne.'1BODYMODE') then
-c                if(approxmode.eq.'2BODYMODE') then
-c                  call smooth2b_gradient_polar_load_balanced
-c                else
-c                  call smooth2_gradient_polar_load_balanced
-c                end if
-c              end if
 
            call mpi_bcast(em,1,mpi_real8,master1,
      &       mpi_comm_world,ierr)

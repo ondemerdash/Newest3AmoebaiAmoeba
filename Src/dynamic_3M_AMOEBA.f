@@ -855,12 +855,6 @@ c                 firstload_emreal = .false.
      &              mpi_comm_world,ierr)
               call mpi_bcast(ind2b_counter,clustcount*clustcount,
      &              mpi_integer,master,mpi_comm_world,ierr)
-c               if(.not.allocated(counter2b_ind))
-c     &             allocate(counter2b_ind(2,num2bsave))
-c              call mpi_bcast(counter2b_ind,num2bsave*2,mpi_integer,
-c     &           master,mpi_comm_world,ierr)
-             ! listbcast=.false.
-             !end if
             end if
 c            listbcast = .false.
        if(taskid.eq.master) then
@@ -924,9 +918,6 @@ c     &    2*3*maxsizeclust,num2bsave))
      &             master2,mpi_comm_world,ierr)
                call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
 
             if(firstload_vdw) then
@@ -937,9 +928,6 @@ c              call sendmlist_load_balanced3_sizelist
      &             numtasks_emreal+2,mpi_comm_world,ierr)
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &             numtasks_emreal+2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_vlst,numtasks_vdw,mpi_integer,
-c     &             master,mpi_comm_world,ierr)
-c               call sendvlist_load_balanced3_sizelist_half
             end if
 c            listsend_vdw = .false.
            allocate(taskidvdw(0:numtasks_vdw2))
@@ -1237,8 +1225,6 @@ c                 firstload_emreal = .false.
             if(listbcast.and.(approxmode.ne.'1BODYMODE')
      &                    .and.do2waterclustlist) then
              firstload_polz = .false.
-           !  call ewbcast_polar_load_balance
-           !  call bcast_polar_load_balance_clust
              call bcast_polar_load_balance_clust_splitlist
 
              call mpi_bcast(nmollst,nmol,mpi_integer,master,
@@ -1420,9 +1406,6 @@ c              print*,"Completed clust3blists_offset"
      &             master2,mpi_comm_world,ierr)
               call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
 
             if(firstload_vdw) then

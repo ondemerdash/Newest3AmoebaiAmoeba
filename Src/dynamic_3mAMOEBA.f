@@ -653,23 +653,10 @@ c     &           viremreal(i,j)+virev(i,j)
 
             if(taskid.eq.master) then
               call gradient_setup
-c              allocate (derivs(3,n))
-c              call prep_pole
-c              print*,"listbcast=",listbcast
               call allocPermElec1
               call alloc3b_vdwlist_nolist_vac
-            !  call mollist2bodyOO6_8_par_1list
-            !  if(firstload_polz) then
-            !    firstload_polz = .false.
-              !  call ewpolar_load_balance
-            !    call polar_load_balance6
-            !  end if
-c              call alloc_erecip
-c            else if(taskid.eq.master1) then
-c              call alloc_erecip
             end if
 
-c            call mpi_barrier(mpi_comm_world,ierr)
 
             call alloc_erecip
             call mpi_bcast(x,n,mpi_real8,master,
@@ -678,36 +665,21 @@ c            call mpi_barrier(mpi_comm_world,ierr)
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
-c            call mpi_bcast(rpole,13*n,mpi_real8,master,
-c     &       mpi_comm_world,ierr)
             call prep_pole
 
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
-c              print*,"In verlet/nose/beeman setup"
-c              print*,"Before alloc3b_nblist verlet/nose/beeman setup"
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
-c                firstload_vdw=.false.
                 call vdw_load_balance_sizelist_half
               end if
-c             print*,"In verlet/nose/beeman setup,after vdw list shit"
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
                call mlist_par
 C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
-c                 firstload_emreal = .false.
                    call emreal_load_balance_sizelist
                 end if
-c             print*,"In verlet/nose/beeman setup,after emreal list shit"
-c            else if(taskid.eq.master2
-c     &                .and.(approxmode.ne.'1BODYMODE')) then
-c                call mollist2bodyOO6_8_par
-c              if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-c                firstload_polz = .false.
-c                call ewpolar_load_balance
-c              end if
            else if(taskid.eq.master) then
               call mollist2bodyOO6_8_par_1list
               if(firstload_polz) then
@@ -720,41 +692,18 @@ c              end if
               end if
            end if
 
-c            if(approxmode.ne.'1BODYMODE') then
-c              if(approxmode.eq.'2BODYMODE') then
-c              call mollist2bodyOO6_8_par_1list_par_newesttink7
-c              else
-c              call mollist2bodyOO6_8_par_1list
-c              end if
-c              if(firstload_polz.and.(taskid.eq.master)) then
-c                call ewpolar_load_balance
-c              end if
-c            end if
-c            call mpi_barrier(mpi_comm_world,ierr)
-
-c            print*,"taskid",taskid,"listsend_mpole",listsend_mpole
-c            print*,"taskid",taskid,"listsend_vdw",listsend_vdw
-c            call mpi_bcast(listsend_vdw,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_mpole,1,mpi_logical,master1,
-c     &       mpi_comm_world,ierr)
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
               
-            !if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
             if(listbcast.and.(approxmode.ne.'1BODYMODE')) then
              firstload_polz = .false.
-           !  call ewbcast_polar_load_balance
              call bcast_polar_load_balance
             call mpi_bcast(nmollst,nmol,mpi_integer,master,
      &       mpi_comm_world,ierr)
             call mpi_bcast(mollst,max2blst*nmol,mpi_integer,master,
      &       mpi_comm_world,ierr)
             end if
-c            listbcast = .false.
 
-c              call mpi_bcast(numtasks_emreal2,1,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
 
             if(firstload_emreal) then
                firstload_emreal = .false.
@@ -764,14 +713,8 @@ c     &             master1,mpi_comm_world,ierr)
      &             master2,mpi_comm_world,ierr)
                call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
-c            listsend_mpole = .false.
 
-c              call mpi_bcast(numtasks_vdw2,1,mpi_integer,
-c     &            numtasks_emreal,mpi_comm_world,ierr)
 
             if(firstload_vdw) then
                 firstload_vdw=.false.
@@ -781,27 +724,13 @@ c     &            numtasks_emreal,mpi_comm_world,ierr)
      &             numtasks_emreal+2,mpi_comm_world,ierr)
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &             numtasks_emreal+2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_vlst,numtasks_vdw,mpi_integer,
-c     &             master,mpi_comm_world,ierr)
-c               call sendvlist_load_balanced3_sizelist_half
             end if
-c            listsend_vdw = .false.
 
             call grad_covemrecip_vandr_reduce_totfield 
 
-c            if(approxmode.ne.'1BODYMODE') then
              call smallsmooth2_gradient_polar_load_balanced
-c            end if
 
 
-c            listsend_mpole=.false.
-        !    call mpi_bcast(em,1,mpi_real8,master1,
-     &  !     mpi_comm_world,ierr)
-        !   call mpi_bcast(dem,3*n,mpi_real8,master1,
-     &  !     mpi_comm_world,ierr)
-        !   call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-     &  !     mpi_comm_world,ierr)
-c            call mpi_waitall(6,reqs,stats2,ierr)
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs1,stat,ierr)
@@ -898,7 +827,6 @@ c                 print*,"dep3b_z",i,dep3b(3,i)!+dep3bmut(3,i)+dep3b1(3,i)
       if(taskid.eq.master) then
         call mdinit_pt2_master
       end if
-c      call mdinit
 c
 
 c     print out a header line for the dynamics computation
@@ -946,8 +874,6 @@ c
           delx=0.000001d0
         end if
 
-c      call mpi_bcast(delV,1,mpi_real8,master,
-c     & mpi_comm_world,ierr)
 
          if (integrate .eq. 'VERLET') then
           do istep = 1, nstep
@@ -961,21 +887,10 @@ c              y(6)=y(6)+delx
 c              z(6)=z(6)+delx
              call gradient_setup
              call allocPermElec1
-c             allocate (derivs(3,n))
              call alloc3b_vdwlist_nolist_vac
-c              call mollist2bodyOO6_8_par_1list
-            !  if(firstload_polz) then
-            !    firstload_polz = .false.
-              !  call ewpolar_load_balance
-            !    call polar_load_balance6
-            !  end if
 
-c             call alloc_erecip
-c            else if(taskid.eq.master1) then
-c             call alloc_erecip
             end if
             
-c            call mpi_barrier(mpi_comm_world,ierr)
             call alloc_erecip
 
         !    t1=mpi_Wtime()
@@ -1021,37 +936,13 @@ c                 firstload_emreal = .false.
               end if
            end if
 
-c            if(approxmode.ne.'1BODYMODE') then
-c              if(approxmode.eq.'2BODYMODE') then
-c              call mollist2bodyOO6_8_par_1list_par_newesttink7
-c              else
-c              call mollist2bodyOO6_8_par_1list
-c              end if
-c              if(firstload_polz.and.(taskid.eq.master)) then
-c                call ewpolar_load_balance
-c              end if
-c            end if
-
-c            call mpi_barrier(mpi_comm_world,ierr)
-
-c            if (.not. allocated(fieldnpole))  allocate (fieldnpole(3,n))
-c          if (.not. allocated(fieldpnpole))  allocate (fieldpnpole(3,n))
-c           if (.not.allocated(fphi_totfield))
-c     &        allocate(fphi_totfield(20,npole))
 
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_mpole,1,mpi_logical,master1,
-c     &       mpi_comm_world,ierr)
-c            call mpi_bcast(listsend_vdw,1,mpi_logical,master,
-c     &       mpi_comm_world,ierr)
 
 
-            !if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
             if(listbcast.and.(approxmode.ne.'1BODYMODE')) then
 
-c             firstload_polz = .false.
-            ! call ewbcast_polar_load_balance
              call bcast_polar_load_balance
           !  t1=mpi_Wtime()
             call mpi_bcast(nmollst,nmol,mpi_integer,master,
@@ -1063,10 +954,6 @@ c             firstload_polz = .false.
             end if
             listbcast=.false.
 
-C IF 'listsend_mpole' IS TRUE, REAL-SPACE PERM ELECTROSTATICS NEIGHBORLIST HAS BEEN REBUILT OR BUILT DE NOVO.
-C THEREFORE, LIST MUST BE BROADCAST. ALSO BROADCAST VARIABLES TO DO WITH LOAD BALANCING
-c              call mpi_bcast(numtasks_emreal2,1,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
 
             if(firstload_emreal) then
               firstload_emreal = .false.
@@ -1076,14 +963,9 @@ c     &             master1,mpi_comm_world,ierr)
      &             master2,mpi_comm_world,ierr)
               call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_elst,numtasks_emreal,mpi_integer,
-c     &             master1,mpi_comm_world,ierr)
-c              call sendmlist_load_balanced3_sizelist
             end if
 c            listsend_mpole = .false.
 
-c              call mpi_bcast(numtasks_vdw2,1,mpi_integer,
-c     &         numtasks_emreal,mpi_comm_world,ierr)
 
             if(firstload_vdw) then
               firstload_vdw = .false.
@@ -1093,27 +975,14 @@ c     &         numtasks_emreal,mpi_comm_world,ierr)
      &          numtasks_emreal+2,mpi_comm_world,ierr)
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &          numtasks_emreal+2,mpi_comm_world,ierr)
-c               call mpi_bcast(maxsize_vlst,numtasks_vdw,mpi_integer,
-c     &             master,mpi_comm_world,ierr)
-c               call sendvlist_load_balanced3_sizelist_half
             end if
-c            listsend_vdw = .false.
  
 
             call grad_covemrecip_vandr_reduce_totfield
 
-c            if(approxmode.ne.'1BODYMODE') then
               call smallsmooth2_gradient_polar_load_balanced
-c            end if
 
-c            call mpi_waitall(6,reqs,stats2,ierr)
 
-           !call mpi_bcast(em,1,mpi_real8,master1,
-     &     !  mpi_comm_world,ierr)
-           !call mpi_bcast(dem,3*n,mpi_real8,master1,
-     &     !  mpi_comm_world,ierr)
-           !call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-     &     !  mpi_comm_world,ierr)
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
           !   t1=mpi_Wtime()
@@ -1277,9 +1146,6 @@ c              end if
              call gradient_setup
              call allocPermElec1
              call alloc3b_vdwlist_nolist_vac
-c             call alloc_erecip
-c            else if(taskid.eq.master1) then
-c             call alloc_erecip
             end if
 
             call alloc_erecip
@@ -1295,8 +1161,6 @@ c             call alloc_erecip
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
-c              print*,"In verlet/nose/beeman setup"
-c              print*,"Before alloc3b_nblist verlet/nose/beeman setup"
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
 c                firstload_vdw=.false.
@@ -1307,7 +1171,6 @@ c             print*,"In verlet/nose/beeman setup,after vdw list shit"
                call mlist_par
 C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
-c                 firstload_emreal = .false.
                    call emreal_load_balance_sizelist
                 end if
            end if
