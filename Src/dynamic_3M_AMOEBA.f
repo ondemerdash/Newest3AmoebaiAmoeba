@@ -16,7 +16,11 @@ c     "dynamic" computes a molecular or stochastic dynamics trajectory
 c     in one of the standard statistical mechanical ensembles and using
 c     any of several possible integration methods
 c
-c
+c     This executable contains sigificant modifications from the "dynamic"
+c     routine in the standard Tinker executable.  It
+c     calculates an approx. to std. AMOEBA polarization using a truncated many-body
+c     expansion (3M-AMOEBA) in an MPI/OpenMP code. Please refer to README.md for more 
+c     details. 
       program dynamic_3M_AMOEBA 
       use sizes
       use atoms

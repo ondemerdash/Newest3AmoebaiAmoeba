@@ -16,7 +16,11 @@ c     "dynamic" computes a molecular or stochastic dynamics trajectory
 c     in one of the standard statistical mechanical ensembles and using
 c     any of several possible integration methods
 c
-c
+c     This executable contains sigificant modifications from the "dynamic"
+c     routine in the standard Tinker executable.  It
+c     calculates direct polarization for the iAMOEBA model using a 
+c     tensor-based formulation in an MPI/OpenMP code. Please refer to
+c     README.md for more details.
       program dynamic_iAMOEBA_tensor 
       use sizes
       use atoms
