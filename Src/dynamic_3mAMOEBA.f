@@ -124,45 +124,27 @@ c
 
 c
 c
-c     set up the structure and molecular mechanics calculation
-c
-c      print*,"Before MPI initialization"
+c Initialize MPI
+
       call mpi_init_thread(mpi_thread_funneled,prov,ierr)
       call mpi_comm_rank(mpi_comm_world,taskid,ierr)
       call mpi_comm_size(mpi_comm_world,numtasks,ierr)
-c      print*,"After MPI initialization"
+
       master =0
       master1 =1
       master2=2
       if(taskid.eq.master) then
          call settime2(twall,tcpu)
       end if
-C BROADCAST SOME LOGICALS.
-c      call mpi_bcast(firstload_emreal,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
 
-c      call mpi_bcast(firstload_vdw,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c
-c      call mpi_bcast(firstload_emreal_bcast,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c
-c      call mpi_bcast(firstload_polz_bcast,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c      call mpi_bcast(firstload_polz,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
+c     set up the structure 
       call initial
       call getxyz
 
       if(taskid.eq.master) then
-c         call mechanic_pme4_eastman
+c     set up the molecular mechanics calculation
          call mechanic_pme4
-c         call kewald 
-c         call kewald_eastman
-         !call kewaldreg3b
-         !call get_numtasks_emreal
-        ! numtasks_emreal=int((numtasks-2)/2)
-        ! numtasks_vdw=numtasks_emreal
+c     apportion MPI tasks for vdW, real-space permanent electrostatics
          if(numtasks.ge.13) then
            numtasks_tmp=numtasks-2
            numtasks_vdw=int(numtasks_tmp/11)
@@ -178,6 +160,7 @@ c         call kewald_eastman
          numtasks_emreal2=numtasks_emreal
 
       else if (taskid.ne.master) then
+c   Perform necessary allocations for data that is needed to be known by all MPI tasks
         if (.not. allocated(imol))  allocate (imol(2,n))
         if (.not. allocated(kmol))  allocate (kmol(n))
         if (.not. allocated(molmass))  allocate (molmass(n))
@@ -240,31 +223,12 @@ c      if (.not. allocated(pollist))  allocate (pollist(n))
 
       end if
 
-
+c   Broadcast molecular mechanic data
       call bcast_mechanic
       call bcast_ewald
       call bcast_ewald3b
       call bcast_vdw
 
-      !call kewald3b
-      !call kewald3b_totfield
-c      if(approxmode.eq.'1BODYMODE') then
-       !print*,"Doing uind allocs"
-c       if(.not. allocated(uind)) allocate(uind(3,n))
-c       if(.not. allocated(uinp)) allocate(uinp(3,n))
-c         if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
-
-C  ALLOCS NECESSARY FOR DEBUGGING MODE ONLY!! REMOVE LATER!!
-      !  if(.not.allocated(demreal_tmp)) allocate(demreal_tmp(3,n))
-c         if (.not. allocated(fieldnpole))  allocate (fieldnpole(3,n))
-c         if (.not. allocated(fieldpnpole))  allocate (fieldpnpole(3,n))
-      !   if(.not.allocated(dep3b)) allocate (dep3b(3,n))
-      !   if(.not.allocated(dev)) allocate (dev(3,n))
-      !   if(.not.allocated(dep3bmut)) allocate (dep3bmut(3,n))
-      !  if(.not.allocated(dep3b1)) allocate (dep3b1(3,n))
-
-C DEFINE A NEW COMM FOR THE MPI/OMP REAL-SPACE PERM ELECTROSTATICS
-C USING ONLY 'numtasks_emreal' TASKS    
       call mpi_bcast(numtasks_emreal,1,mpi_integer,master,
      &   mpi_comm_world,ierr)
       call mpi_bcast(numtasks_vdw,1,mpi_integer,master,
@@ -290,15 +254,13 @@ C USING ONLY 'numtasks_emreal' TASKS
          if (.not. allocated(maxsize_vlst))
      &         allocate (maxsize_vlst(0:numtasks_vdw-1))
 
+c   Initialize some additional molecular mechanic parameters
 
       if(taskid.ne.master) then
          call mechanic_parallel2
-c         call kewald
       end if
       if(taskid.eq.master1) then
          call kewald
-         !call kewald_eastman
-         !call cutoffs_ewald
       end if
 
 
@@ -311,8 +273,6 @@ c         call kewald
         call cutoffs2_serial
 
       call mpi_barrier(mpi_comm_world,ierr)
-        ! ewtotfieldsmallsmooth2_gradient_polar_1body(
-     &  !     start,start+offset-1,moli1rmndr)
 
       if(itermode.ne.1) then
          offset=int(nmol/numtasks)
@@ -346,9 +306,6 @@ c
 c     initialize the temperature, pressure and coupling baths
 c
       if(taskid.eq.master) then
-c        print*,"Before call to gettime2"
-c        call gettime2 (twall,tcpu)
-c        print*,"Wall Time=", twall, "CPU Time=",tcpu
       kelvin = 0.0d0
       atmsph = 0.0d0
       isothermal = .false.
@@ -650,7 +607,8 @@ c     &           viremreal(i,j)+virev(i,j)
               if (nuse .eq. n)  call mdrest (0)
             end if
          else
-
+c      verlet/nose/beeman setup
+C Perform initialization of matrices
             if(taskid.eq.master) then
               call gradient_setup
               call allocPermElec1
@@ -659,34 +617,43 @@ c     &           viremreal(i,j)+virev(i,j)
 
 
             call alloc_erecip
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
+C Initialize multipoles in the global coordinate frame
             call prep_pole
 
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
+C Initialize vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize real-space electrostatic neighbor list
                call mlist_par
-C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                    call emreal_load_balance_sizelist
                 end if
            else if(taskid.eq.master) then
+C Initialize neighbor list of molecules for 3m-AMOEBA
               call mollist2bodyOO6_8_par_1list
               if(firstload_polz) then
                 firstload_polz = .false.
+
                 if(approxmode.eq.'2BODYMODE') then
+C Perform load balancing of molecular neighbor list based on pairs
                 call polar_load_balance6
                 else
+C Perform load balancing of molecular neighbor list based on triples
                 call polar_load_balance7
                 end if
               end if
@@ -694,7 +661,7 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
 
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
-              
+C Broadcast load balancing information for neighbor list (performed once        
             if(listbcast.and.(approxmode.ne.'1BODYMODE')) then
              firstload_polz = .false.
              call bcast_polar_load_balance
@@ -726,11 +693,12 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
      &             numtasks_emreal+2,mpi_comm_world,ierr)
             end if
 
+C Calculate pairwise-additive contributions to energy, gradient, virial
             call grad_covemrecip_vandr_reduce_totfield 
-
+C Calculate polarization contributions to energy, gradient, virial under 2m-/3m-AMOEBA
              call smallsmooth2_gradient_polar_load_balanced
 
-
+C Ensure that all components of energy,gradient,virial have reached the master task
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs1,stat,ierr)
@@ -879,6 +847,7 @@ c
           do istep = 1, nstep
 
             if(taskid.eq.master) then 
+C Perform initialization of matrices and step 1 of Velocity Verlet
              call verlet_pt1 (istep,dt)
              !call ptest_parallel
 
@@ -894,6 +863,7 @@ c              z(6)=z(6)+delx
             call alloc_erecip
 
         !    t1=mpi_Wtime()
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
@@ -903,33 +873,37 @@ c              z(6)=z(6)+delx
         !    t2=mpi_Wtime()
         !print*,"X,Y,Z Bcast taskid",taskid,"time=",t2-t1
 
+C Initialize multipoles in the global coordinate frame of the update coordinates
             call prep_pole
             !call bcast_lattice
 
            if((taskid.ge.numtasks_emreal+2) 
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
-c              print*,"In verlet/nose/beeman setup"
-c              print*,"Before alloc3b_nblist verlet/nose/beeman setup"
+C Initialize or update vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
 c                firstload_vdw=.false.
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if
-c             print*,"In verlet/nose/beeman setup,after vdw list shit"
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize or update real-space electrostatic neighbor list
                call mlist_par
-C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
 c                 firstload_emreal = .false.
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                    call emreal_load_balance_sizelist
                 end if
            else if(taskid.eq.master) then
+C Initialize neighbor list of molecules for 3m-AMOEBA
               call mollist2bodyOO6_8_par_1list
               if(firstload_polz) then
                 firstload_polz = .false.
                 if(approxmode.eq.'2BODYMODE') then
+C Perform load balancing of molecular neighbor list based on pairs
                 call polar_load_balance6
                 else
+C Perform load balancing of molecular neighbor list based on triples
                 call polar_load_balance7
                 end if
 
@@ -940,6 +914,7 @@ c                 firstload_emreal = .false.
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
 
+C Broadcast load balancing information for neighbor list (performed once        
 
             if(listbcast.and.(approxmode.ne.'1BODYMODE')) then
 
@@ -964,7 +939,6 @@ c                 firstload_emreal = .false.
               call mpi_bcast(last_emreal2,numtasks_emreal,mpi_integer,
      &             master2,mpi_comm_world,ierr)
             end if
-c            listsend_mpole = .false.
 
 
             if(firstload_vdw) then
@@ -977,12 +951,13 @@ c            listsend_mpole = .false.
      &          numtasks_emreal+2,mpi_comm_world,ierr)
             end if
  
-
+C Calculate pairwise-additive contributions to energy, gradient, virial
             call grad_covemrecip_vandr_reduce_totfield
-
+C Calculate polarization contributions to energy, gradient, virial under 2m-/3m-AMOEBA
               call smallsmooth2_gradient_polar_load_balanced
 
-
+C Ensure that all components of energy,gradient,virial have reached the master task
+C (using non-blocking MPI collectives)
             if(taskid.eq.master1) then
 c            call mpi_waitall(6,reqs,stats2,ierr)
           !   t1=mpi_Wtime()
@@ -1019,6 +994,7 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
 
 
             if(taskid.eq.master) then
+C Sum components of energy, gradient, and virial and perform step 2 of Velocity Verlet
                  call empole1d_3b_Perm_selfeng_bcast
                  if (use_vcorr) then
                   call evcorr1 (elrc,vlrc)
@@ -1141,6 +1117,7 @@ c              end if
          if (integrate .eq. 'NOSE-HOOVER') then
           do istep=1,nstep
             if(taskid.eq.master) then
+C Perform initialization of matrices and step 1 of Nose-Hoover integration
              call nose_pt1(istep,dt,press)
 
              call gradient_setup
@@ -1149,49 +1126,89 @@ c              end if
             end if
 
             call alloc_erecip
-
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
+C Broadcast updated Lattice for constatn-pressure dynamics
             call bcast_lattice
+C Initialize multipoles in the global coordinate frame of the update coordinates
             call prep_pole
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
+C Initialize or update vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
 c                firstload_vdw=.false.
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if 
 c             print*,"In verlet/nose/beeman setup,after vdw list shit"
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize or update real-space electrostatic neighbor list
                call mlist_par
 C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                    call emreal_load_balance_sizelist
                 end if
+           else if(taskid.eq.master) then
+C Initialize neighbor list of molecules for 3m-AMOEBA
+              call mollist2bodyOO6_8_par_1list
+              if(firstload_polz) then
+                firstload_polz = .false.
+                if(approxmode.eq.'2BODYMODE') then
+C Perform load balancing of molecular neighbor list based on pairs
+                call polar_load_balance6
+                else
+C Perform load balancing of molecular neighbor list based on triples
+                call polar_load_balance7
+                end if
+
+              end if
            end if
 
-            if(approxmode.ne.'1BODYMODE') then
-              if(approxmode.eq.'2BODYMODE') then
-              call mollist2bodyOO6_8_par_1list_par_newesttink7
-              else
-              call mollist2bodyOO6_8_par_1list
-              end if
-              if(firstload_polz.and.(taskid.eq.master)) then
-                call ewpolar_load_balance
-              end if
-            end if
+c           end if
+c            if(approxmode.ne.'1BODYMODE') then
+c              if(approxmode.eq.'2BODYMODE') then
+c
+c              call mollist2bodyOO6_8_par_1list_par_newesttink7
+c              else
+c              call mollist2bodyOO6_8_par_1list
+c              end if
+c              if(firstload_polz.and.(taskid.eq.master)) then
+c                call ewpolar_load_balance
+c              end if
+c            end if
 
-            call mpi_barrier(mpi_comm_world,ierr)
+c            call mpi_barrier(mpi_comm_world,ierr)
+c
+c            if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
+c             firstload_polz = .false.
+c             call ewbcast_polar_load_balance
+c            end if
 
-            if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
-             firstload_polz = .false.
-             call ewbcast_polar_load_balance
+            call mpi_bcast(listbcast,1,mpi_logical,master,
+     &       mpi_comm_world,ierr)
+
+C Broadcast load balancing information for neighbor list (performed once        
+
+            if(listbcast.and.(approxmode.ne.'1BODYMODE')) then
+
+             call bcast_polar_load_balance
+          !  t1=mpi_Wtime()
+            call mpi_bcast(nmollst,nmol,mpi_integer,master,
+     &       mpi_comm_world,ierr)
+            call mpi_bcast(mollst,max2blst*nmol,mpi_integer,master,
+     &       mpi_comm_world,ierr)
+          !  t2=mpi_Wtime()
+          !  print*,"Bcast Polz list taskid",taskid,"time=",t2-t1
             end if
+            listbcast=.false.
 
             if(firstload_emreal) then
               firstload_emreal = .false.
@@ -1213,21 +1230,52 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
      &          numtasks_emreal+2,mpi_comm_world,ierr)
             end if
 
+C Calculate pairwise-additive contributions to energy, gradient, virial
+
             call grad_covemrecip_vandr_reduce_totfield
 
-            if(approxmode.ne.'1BODYMODE') then
+C Calculate polarization contributions to energy, gradient, virial under 2m-/3m-AMOEBA
+
              call smallsmooth2_gradient_polar_load_balanced
+
+C Ensure that all components of energy,gradient,virial have reached the master task
+C (using non-blocking MPI collectives)
+            if(taskid.eq.master1) then
+c            call mpi_waitall(6,reqs,stats2,ierr)
+          !   t1=mpi_Wtime()
+             call mpi_wait(reqs1,stat,ierr)
+             call mpi_wait(reqs2,stat,ierr)
+             call mpi_wait(reqs3,stat,ierr)
+          !   t2=mpi_Wtime()
+          !   print*,"Wait PME isend taskid",taskid,"time=",t2-t1
+            else if(taskid.eq.master) then
+          !   t1=mpi_Wtime()
+             call mpi_wait(reqs4,stat,ierr)
+             call mpi_wait(reqs5,stat,ierr)
+             call mpi_wait(reqs6,stat,ierr)
+          !   t2=mpi_Wtime()
+          !   print*,"Wait PME irecv taskid",taskid,"time=",t2-t1
             end if
 
-           call mpi_bcast(em,1,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(dem,3*n,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
+          !   t3=mpi_Wtime()
+             call mpi_wait(reqs13,stat,ierr)
+             call mpi_wait(reqs14,stat,ierr)
+             call mpi_wait(reqs15,stat,ierr)
+             call mpi_wait(reqs16,stat,ierr)
+             call mpi_wait(reqs17,stat,ierr)
+             call mpi_wait(reqs18,stat,ierr)
+          !   t4=mpi_Wtime()
+         !print*,"Wait VdW and Real ireduce taskid",taskid,"time=",t4-t3
 
+          !   t3=mpi_Wtime()
+             call mpi_wait(reqs21,stat,ierr)
+             call mpi_wait(reqs22,stat,ierr)
+             call mpi_wait(reqs23,stat,ierr)
+          !   t4=mpi_Wtime()
+         !print*,"Wait Polz ireduce taskid",taskid,"time=",t4-t3
 
             if(taskid.eq.master) then
+C Sum components of energy, gradient, and virial and perform step 2 of Velocity Verlet
                  call empole1d_3b_Perm_selfeng_bcast
                  if (use_vcorr) then
                   call evcorr1 (elrc,vlrc)
