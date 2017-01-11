@@ -17,7 +17,7 @@ c     in one of the standard statistical mechanical ensembles and using
 c     any of several possible integration methods
 c
 c
-      program dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp_clust3
+      program dynamic_3M_AMOEBA 
       use sizes
       use atoms
       use bath
@@ -146,49 +146,25 @@ c
       data done_comm_create / .false. /
 c
 c
-c     set up the structure and molecular mechanics calculation
 c
-c      print*,"Before MPI initialization"
+c Initialize MPI
+
       call mpi_init_thread(mpi_thread_funneled,prov,ierr)
       call mpi_comm_rank(mpi_comm_world,taskid,ierr)
       call mpi_comm_size(mpi_comm_world,numtasks,ierr)
-c      print*,"After MPI initialization"
       master =0
       master1 =1
       master2=2
-      !if(taskid.eq.master) then
-      !   call settime2(twall,tcpu)
-      !end if
-C BROADCAST SOME LOGICALS.
-c      call mpi_bcast(firstload_emreal,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c
-c      call mpi_bcast(firstload_vdw,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c
-c      call mpi_bcast(firstload_emreal_bcast,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c
-c      call mpi_bcast(firstload_polz_bcast,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
-c      call mpi_bcast(firstload_polz,1,mpi_logical,master,
-c     & mpi_comm_world,ierr)
+
+c     set up the structure 
       call initial
       call getxyz
 
-c      do2waterclustlist=.false.
       if(taskid.eq.master) then
-c         call mechanic_pme4_eastman
+c     set up the molecular mechanics calculation
          call mechanic_pme4
          call kewald3b
-c         call kewald 
-c         call kewald_eastman
-         !call kewaldreg3b
-         !call get_numtasks_emreal
-c         numtasks_emreal=int((numtasks-2)/2)
-c         numtasks_vdw=numtasks_emreal
-c         numtasks_vdw2=numtasks_vdw
-c         numtasks_emreal2=numtasks_emreal
+c     apportion MPI tasks for vdW, real-space permanent electrostatics
          if(numtasks.ge.13) then
            numtasks_tmp=numtasks-2
            numtasks_vdw=int(numtasks_tmp/11)
@@ -209,6 +185,7 @@ C  ALLOCATIONS FOR CLUSTER VERSION
         if (.not. allocated(zmolold2)) allocate(zmolold2(nmol))
 
       else if (taskid.ne.master) then
+c   Perform necessary allocations for data that is needed to be known by all MPI tasks
         if (.not. allocated(imol))  allocate (imol(2,n))
         if (.not. allocated(kmol))  allocate (kmol(n))
         if (.not. allocated(molmass))  allocate (molmass(n))
@@ -271,29 +248,11 @@ c      if (.not. allocated(pollist))  allocate (pollist(n))
 
       end if
 
-
+c   Broadcast molecular mechanic data
       call bcast_mechanic
       call bcast_ewald
       call bcast_ewald3b
       call bcast_vdw
-
-      !call kewald3b
-      !call kewald3b_totfield
-c      if(approxmode.eq.'1BODYMODE') then
-       !print*,"Doing uind allocs"
-c       if(.not. allocated(uind)) allocate(uind(3,n))
-c       if(.not. allocated(uinp)) allocate(uinp(3,n))
-c         if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
-
-C  ALLOCS NECESSARY FOR DEBUGGING MODE ONLY!! REMOVE LATER!!
-c        if(.not.allocated(demreal_tmp)) allocate(demreal_tmp(3,n))
-c         if (.not. allocated(fieldnpole))  allocate (fieldnpole(3,n))
-c         if (.not. allocated(fieldpnpole))  allocate (fieldpnpole(3,n))
-c         if(.not.allocated(dep3b)) allocate (dep3b(3,n))
-c         if(.not.allocated(dev)) allocate (dev(3,n))
-c         if(.not.allocated(dem)) allocate (dem(3,n))
-      !   if(.not.allocated(dep3bmut)) allocate (dep3bmut(3,n))
-      !  if(.not.allocated(dep3b1)) allocate (dep3b1(3,n))
 
 C DEFINE A NEW COMM FOR THE MPI/OMP REAL-SPACE PERM ELECTROSTATICS
 C USING ONLY 'numtasks_emreal' TASKS    
@@ -322,7 +281,7 @@ c      print*,"numtasks_emreal after read and bcast",numtasks_emreal
          if (.not. allocated(maxsize_vlst))
      &         allocate (maxsize_vlst(0:numtasks_vdw-1))
 
-
+c   Initialize some additional molecular mechanic parameters
       if(taskid.ne.master) then
          call mechanic_parallel2
 c         call kewald
@@ -349,9 +308,10 @@ c        end if
 
         call cutoffs2_serial
 
-C  ALLOCATIONS FOR CLUSTER VERSION
       if(inputkmeansclust) then
+C Read in cluster information from file
          call getclust
+C  ALLOCATIONS FOR CLUSTER VERSION
 c        if(.not. allocated(ep1bmat)) allocate(ep1bmat(clustcount)) 
 c        if(.not. allocated(dep1bmat)) allocate(dep1bmat(3,
 c     &    3*maxsizeclust,clustcount))
@@ -398,6 +358,7 @@ c     &    2*3*maxsizeclust,clustcount,clustcount))
          if (.not. allocated(distmax))  allocate (distmax(nmol))
       end if
 
+C Allocations necessary for cluster neighbor lists
         if(.not.allocated(nmollst3)) allocate(nmollst3(clustcount))
         if(.not.allocated(mollst3)) 
      &         allocate(mollst3(7*clustcount,clustcount))
@@ -408,37 +369,6 @@ c     &    2*3*maxsizeclust,clustcount,clustcount))
 
 
       call mpi_barrier(mpi_comm_world,ierr)
-
-        ! ewtotfieldsmallsmooth2_gradient_polar_1body(
-     &  !     start,start+offset-1,moli1rmndr)
-
-c      if(itermode.ne.1) then
-c         offset=int(nmol/numtasks)
-c         remainder=mod(nmol,numtasks)
-c
-c         remainder2=mod(offset,itermode)
-c
-c         if(taskid.le.remainder-1) then
-c           moli1rmndr=numtasks*offset+taskid+1
-c         else if (taskid.gt.remainder-1) then
-c           moli1rmndr=0
-c         end if
-c         start=taskid*offset+1
-c         offset2=offset-remainder2
-c         last=start+offset2-1
-c         start2=last+1
-c         last2=start2+remainder2-1
-c      else 
-c         offset=int(nmol/numtasks)
-c         remainder=mod(nmol,numtasks)
-c
-c         if(taskid.le.remainder-1) then
-c           moli1rmndr=numtasks*offset+taskid+1
-c         else if (taskid.gt.remainder-1) then
-c           moli1rmndr=0
-c         end if
-c         start=taskid*offset+1
-c      end if
 
 c
 c     initialize the temperature, pressure and coupling baths
@@ -753,7 +683,7 @@ c     &           viremreal(i,j)+virev(i,j)
             end if
          else
 c          beeman/nose/verlet setup
-
+C Perform initialization of matrices
             if(taskid.eq.master) then
               call gradient_setup
               call alloc3b_vdwlist_nolist_vac
@@ -761,18 +691,20 @@ c          beeman/nose/verlet setup
             end if
 
               call alloc_erecip
-
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
+C Initialize multipoles in the global coordinate frame
             call prep_pole
+C Initialize PME b-splines (PME performed on all tasks in 3M-AMOEBA)
             call bspline_fill_omp
             call table_fill_omp
             call mpi_barrier(mpi_comm_world,ierr)
-
+C Perform initialization of additional matrices for 3M-AMOEBA
             if(inputkmeansclust.and.(taskid.eq.master)) then
              !call init1bmatPolarPerm
              call init1bmat
@@ -780,33 +712,37 @@ c          beeman/nose/verlet setup
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
+C Initialize vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize real-space electrostatic neighbor list
                call mlist_par
-C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
 c                 firstload_emreal = .false.
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                    call emreal_load_balance_sizelist
                 end if
            else if(taskid.eq.master) then
-
+C Initialize neighbor list of molecular clusters for 3M-AMOEBA
               if(do2waterclustlist) then
                  call mollist2body_NewBodieskmeans
               end if
               if(firstload_polz.and.do2waterclustlist) then
                 firstload_polz = .false.
-                !call polar_load_balance7
                 !call polar_load_balance_clust
+C Perform load balancing of molecular neighbor list based on pairs
                 call polar_load_balance_clust_splitlist_offset
+C Perform load balancing of molecular neighbor list based on triples
                  call polar_load_balance_clust_splitlist_offset3b_simple
               end if
            !   done_clustlist_setup = .true.        
            end if
 
-
+C Initialize MPI communicators
               numtasks_polar1=clustcount
               offset=int(clustcount/numtasks_polar1)
               remainder=mod(clustcount,numtasks_polar1)
@@ -831,7 +767,8 @@ c                 firstload_emreal = .false.
 
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
- 
+
+C Broadcast load balancing information for neighbor list 
             !if(firstload_polz.and.(approxmode.ne.'1BODYMODE')) then
             if(listbcast.and.(approxmode.ne.'1BODYMODE')
      &                    .and.do2waterclustlist) then
@@ -874,9 +811,11 @@ c        if(.not. allocated(dem2bmatmod)) allocate(dem2bmatmod(3,
 c     &    2*3*maxsizeclust,num2bsave))
 
             if((taskid.lt.numtasks_polar1).and.mlistclust) then
+C Initialize neighbor lists of atomic sites within 1-body cluster subsystems
               call clust1blists(start,start+offset-1, moli1rmndr) 
               print*,"Completed clust1blists"
               if(use_pred) then
+C Initialize initial guesses of subsystem dipoles for SCF
                 call initpolarpred1b(start,start+offset-1,moli1rmndr)
                 setup_pred1b=.true.
               end if
@@ -885,9 +824,11 @@ c     &    2*3*maxsizeclust,num2bsave))
            if((taskid.ge.numtasks_polar1).and.
      &             (taskid.lt.(numtasks_polar+numtasks_polar1))
      &             .and.mlistclust) then
+C Initialize neighbor lists of atomic sites within 2-body cluster subsystems
               call clust2blists_offset
               print*,"Completed clust2blists_offset"
               if(use_pred) then
+C Initialize initial guesses of subsystem dipoles for SCF
                 call initpolarpred2b_offset
                 setup_pred2b=.true.
               end if
@@ -898,9 +839,11 @@ c     &    2*3*maxsizeclust,num2bsave))
      &         (taskid.lt.
      &         (numtasks_polar+numtasks_polar1+numtasks_polar3b))
      &         .and.mlistclust) then 
+C Initialize neighbor lists of atomic sites within 3-body cluster subsystems
               call clust3blists_offset
               print*,"Completed clust3blists_offset"
               if(use_pred) then
+C Initialize initial guesses of subsystem dipoles for SCF
                 call initpolarpred3b_offset
                 setup_pred3b=.true.
               print*,"Completed initpolarpred3b_offset"
@@ -910,6 +853,7 @@ c     &    2*3*maxsizeclust,num2bsave))
             listbcast=.false.           
             call mpi_barrier(mpi_comm_world,ierr)
 
+C Broadcast load balancing information for pairwise-additive potentials
             if(firstload_emreal) then
                firstload_emreal = .false.
               call mpi_bcast(numtasks_emreal2,1,mpi_integer,
@@ -930,6 +874,8 @@ c     &    2*3*maxsizeclust,num2bsave))
      &             numtasks_emreal+2,mpi_comm_world,ierr)
             end if
 c            listsend_vdw = .false.
+
+C  Create MPI communicators
            allocate(taskidvdw(0:numtasks_vdw2))
            taskidvdw(0)=0
            do j=numtasks_emreal+2,numtasks_vdw2+numtasks_emreal+1
@@ -973,14 +919,16 @@ c            listsend_vdw = .false.
             deallocate(taskidemreal)
             done_comm_create=.true.
 
+c Calculate polarization energy, gradient, and virial under 3M-AMOEBA
           call clust_gradient_Polar1b2b3bsimult_ireducematcommsmall2(
      &      start,start+offset-1, moli1rmndr)
-
+C Calculate pairwise-additive contributions to energy, gradient, and virial
             call grad_covemrecip_vandr_reduce_totfield_commsmall
 
             !end if
 
-
+C Ensure that all components of energy,gradient,virial have reached the master task
+C due to use of non-blocking MPI collectives
             if(taskid.eq.master1) then
              call mpi_wait(reqs1,stat,ierr)
              call mpi_wait(reqs2,stat,ierr)
@@ -1028,6 +976,8 @@ c            listsend_vdw = .false.
              call mpi_wait(reqs32,stat,ierr)
              call mpi_wait(reqs33,stat,ierr)
       end if
+
+C Sum 1-, 2-, and 3-body contributions to polarization
       call sum_gradient_Polar1b2b3bsimult_ireducematcommsmall2
 
               if(taskid.eq.master) then
@@ -1162,13 +1112,15 @@ c     & mpi_comm_world,ierr)
 
          if (integrate .eq. 'VERLET') then
           do istep = 1, nstep           
-            if(taskid.eq.master) then 
+            if(taskid.eq.master) then
+C Perform first step of Velocity Verlet integration 
              call verlet_pt1 (istep,dt)
              !call ptest_parallel
-
              ! x(6)=x(6)+delx
-c              y(6)=y(6)+delx
-c              z(6)=z(6)+delx
+             ! y(6)=y(6)+delx
+             ! z(6)=z(6)+delx
+
+C Perform initialization of matrices
              call gradient_setup
              call allocPermElec1
 
@@ -1176,43 +1128,51 @@ c              z(6)=z(6)+delx
             end if
             
              call alloc_erecip
-
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
+C Initialize multipoles in the global coordinate frame
             call prep_pole
+C Initialize PME b-splines (PME performed on all tasks in 3M-AMOEBA)
             call bspline_fill_omp
             call table_fill_omp
             call mpi_barrier(mpi_comm_world,ierr)
-            call bcast_lattice
+c            call bcast_lattice
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
+C Initialize or update vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize or update real-space electrostatic neighbor list
                call mlist_par
-C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
                 if(firstload_emreal.and.(taskid.eq.master2)) then
 c                 firstload_emreal = .false.
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                    call emreal_load_balance_sizelist
                 end if
            !else if(taskid.eq.master.and.(.not.done_clustlist_setup))then
            else if(taskid.eq.master.and.((mod(istep,10).eq.0)
      &                            .or.exist))then
               if(do2waterclustlist) then
+C Initialize or update neighbor list of molecular clusters for 3M-AMOEBA
                  call mollist2body_NewBodieskmeans
               !end if
               !if(firstload_polz.and.do2waterclustlist) then
               !  firstload_polz = .false.
                 !call polar_load_balance7
                 !call polar_load_balance_clust
+C Perform load balancing of molecular neighbor list based on pairs
                 call polar_load_balance_clust_splitlist_offset
+C Perform load balancing of molecular neighbor list based on triples
                  call polar_load_balance_clust_splitlist_offset3b_simple
               end if
               !done_clustlist_setup = .true.
@@ -1221,7 +1181,7 @@ c                 firstload_emreal = .false.
             call mpi_bcast(listbcast,1,mpi_logical,master,
      &       mpi_comm_world,ierr)
 
-
+C Broadcast load balancing information for neighbor list 
             if(listbcast.and.(approxmode.ne.'1BODYMODE')
      &                    .and.do2waterclustlist) then
              firstload_polz = .false.
@@ -1252,6 +1212,7 @@ c     &           master,mpi_comm_world,ierr)
               !listbcast=.false.
             end if
 
+C Initialize MPI communicators if not already done.
             if(.not.done_comm_create) then
               numtasks_polar1=clustcount
               offset=int(clustcount/numtasks_polar1)
@@ -1333,6 +1294,7 @@ c     &           master,mpi_comm_world,ierr)
             deallocate(taskidemreal)
             end if
 
+C Initialize matrices for 1- and 2-body polarization data that must be stored
           if(inputkmeansclust.and.(taskid.eq.master)) then
             ! call init1b2bmatPolarPerm
              call init1bmat!PolarPerm
@@ -1347,6 +1309,7 @@ c     &           master,mpi_comm_world,ierr)
 
              if((taskid.lt.numtasks_polar1).and.mlistclust) then
               if(use_pred.and.(.not.setup_pred1b)) then
+C Initialize initial guesses of subsystem dipoles for SCF if not already done
                 call initpolarpred1b(start,start+offset-1,moli1rmndr)
                 setup_pred1b=.true.
               end if
@@ -1357,6 +1320,7 @@ c     &           master,mpi_comm_world,ierr)
      &             .and.mlistclust) then
               !if(use_pred.and.(.not.setup_pred2b)) then
               if(use_pred.and.listbcast) then
+C Initialize initial guesses of subsystem dipoles for SCF if not already done
                 call initpolarpred2b_offset
                 setup_pred2b=.true.
               end if
@@ -1368,6 +1332,7 @@ c     &           master,mpi_comm_world,ierr)
      &         .and.mlistclust) then
               !if(use_pred.and.(.not.setup_pred3b)) then
               if(use_pred.and.listbcast) then
+C Initialize initial guesses of subsystem dipoles for SCF if not already done
                 call initpolarpred3b_offset
                 setup_pred3b=.true.
             !  print*,"Completed initpolarpred3b_offset"
@@ -1376,6 +1341,7 @@ c     &           master,mpi_comm_world,ierr)
 
            if( (mod(istep,5).eq.0 ) .or. exist) then
              if((taskid.lt.numtasks_polar1).and.mlistclust) then
+C Initialize neighbor lists of atomic sites within 1-body cluster subsystems
               call clust1blists(start,start+offset-1, moli1rmndr)
 c              print*,"Completed clust1blists"
              end if
@@ -1383,6 +1349,7 @@ c              print*,"Completed clust1blists"
              if((taskid.ge.numtasks_polar1).and.
      &             (taskid.lt.(numtasks_polar+numtasks_polar1))
      &             .and.mlistclust) then
+C Initialize neighbor lists of atomic sites within 2-body cluster subsystems
               call clust2blists_offset
 c              print*,"Completed clust2blists_offset"
              end if
@@ -1392,12 +1359,14 @@ c              print*,"Completed clust2blists_offset"
      &         (taskid.lt.
      &         (numtasks_polar+numtasks_polar1+numtasks_polar3b))
      &         .and.mlistclust) then
+C Initialize neighbor lists of atomic sites within 3-body cluster subsystems
               call clust3blists_offset
 c              print*,"Completed clust3blists_offset"
             end if
            end if
              listbcast=.false.
              exist=.false.
+C Broadcast load balancing information for pairwise-additive potentials
             if(firstload_emreal) then
               firstload_emreal = .false.
               call mpi_bcast(numtasks_emreal2,1,mpi_integer,
@@ -1420,13 +1389,18 @@ c              print*,"Completed clust3blists_offset"
             numtasks_polar_old=numtasks_polar
             numtasks_polar3b_old=numtasks_polar3b
 
+c Calculate polarization energy, gradient, and virial under 3M-AMOEBA
           call clust_gradient_Polar1b2b3bsimult_ireducematcommsmall2(
      &       start,start+offset-1, moli1rmndr)
 
             !call grad_cov_v_reduce
 c            call grad_cov_v_reduce_commsmall
+
+C Calculate pairwise-additive contributions to energy, gradient, and virial
             call grad_covemrecip_vandr_reduce_totfield_commsmall
 
+C Ensure that all components of energy,gradient,virial have reached the master task
+C due to use of non-blocking MPI collectives
             if(taskid.eq.master1) then
              call mpi_wait(reqs1,stat,ierr)
              call mpi_wait(reqs2,stat,ierr)
@@ -1473,9 +1447,13 @@ c            call grad_cov_v_reduce_commsmall
              call mpi_wait(reqs32,stat,ierr)
              call mpi_wait(reqs33,stat,ierr)
       end if
+
+C Sum 1-, 2-, and 3-body contributions to polarization
       call sum_gradient_Polar1b2b3bsimult_ireducematcommsmall2
 
             if(taskid.eq.master) then
+C Sum all contributions to energy, gradient, virial and perform step 2
+C of Velocity Verlet integration
                  call empole1d_3b_Perm_selfeng_bcast
                  if (use_vcorr) then
                   call evcorr1 (elrc,vlrc)

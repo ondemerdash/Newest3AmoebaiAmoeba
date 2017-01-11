@@ -17,7 +17,7 @@ c     in one of the standard statistical mechanical ensembles and using
 c     any of several possible integration methods
 c
 c
-      program dyn_rMPIOMP_kBcast_rloadbal_nolistsend_funcdecomp
+      program dynamic_3mAMOEBA 
       use sizes
       use atoms
       use bath
