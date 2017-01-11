@@ -720,6 +720,9 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
              call mpi_wait(reqs23,stat,ierr)
 
               if(taskid.eq.master) then
+C Sum all contributions to energy, gradient, and virial. 
+C Initialize velocities from Maxwell-Boltzmann distribution.
+C Initialize accelarations based on gradients.
                  print*,"In master after irecv em=",em
                  call empole1d_3b_Perm_selfeng_bcast
 

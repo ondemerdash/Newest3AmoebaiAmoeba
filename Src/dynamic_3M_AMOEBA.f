@@ -981,6 +981,9 @@ C Sum 1-, 2-, and 3-body contributions to polarization
       call sum_gradient_Polar1b2b3bsimult_ireducematcommsmall2
 
               if(taskid.eq.master) then
+C Sum all contributions to energy, gradient, and virial. 
+C Initialize velocities from Maxwell-Boltzmann distribution.
+C Initialize accelarations based on gradients.
                  print*,"In master after bcast or irecv em=",em
                  call empole1d_3b_Perm_selfeng_bcast
 
