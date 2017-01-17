@@ -19,8 +19,10 @@ c
 c     This executable contains sigificant modifications from the "dynamic"
 c     routine in the standard Tinker executable.  It
 c     calculates an approx. to std. AMOEBA polarization using a truncated many-body
-c     expansion (3m-AMOEBA) in an MPI/OpenMP code. Please refer to README.md for more 
-c     details.
+c     expansion (3m-AMOEBA) in an MPI/OpenMP code. In this model, the single molecule is
+c     the 'body' in the MBE. It has been implemented for the widely used 
+c     'VERLET' and 'NOSE-HOOVER' integration methods. 
+c     Please refer to README.md for more details.
       program dynamic_3mAMOEBA 
       use sizes
       use atoms
@@ -1001,7 +1003,7 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
 
 
             if(taskid.eq.master) then
-C Sum components of energy, gradient, and virial and perform step 2 of Velocity Verlet
+C Sum components of energy, gradient, and virial and perform step 2 of Velocity Verlet and update temperature and pressure
                  call empole1d_3b_Perm_selfeng_bcast
                  if (use_vcorr) then
                   call evcorr1 (elrc,vlrc)
@@ -1282,7 +1284,8 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
          !print*,"Wait Polz ireduce taskid",taskid,"time=",t4-t3
 
             if(taskid.eq.master) then
-C Sum components of energy, gradient, and virial and perform step 2 of Velocity Verlet
+C  Sum components of energy, gradient, and virial and perform step 2 of Nose integration 
+C  and update temperature and pressure
                  call empole1d_3b_Perm_selfeng_bcast
                  if (use_vcorr) then
                   call evcorr1 (elrc,vlrc)

@@ -19,8 +19,9 @@ c
 c     This executable contains sigificant modifications from the "dynamic"
 c     routine in the standard Tinker executable.  It
 c     calculates direct polarization for the iAMOEBA model using a 
-c     tensor-based formulation in an MPI/OpenMP code. Please refer to
-c     README.md for more details.
+c     tensor-based formulation in an MPI/OpenMP code. It has been implemented 
+c     for the widely used 'VERLET' and 'NOSE-HOOVER' integration methods. 
+c     Please refer to README.md for more details.
       program dynamic_iAMOEBA_tensor 
       use sizes
       use atoms
@@ -852,7 +853,6 @@ C Perform initialization of matrices
              call gradient_setup
              call allocPermElec1
              call alloc3b_vdwlist_nolist
-             call alloc_erecip
          if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
             else if(taskid.eq.master1) then
          if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
@@ -960,7 +960,7 @@ c            call mpi_waitall(6,reqs,stats2,ierr)
 
             if(taskid.eq.master) then
 C Sum all contributions to energy, gradient, and virial. 
-C Perform second step of Velocity Verlet integration.
+C Perform second step of Velocity Verlet integration and update temperature and pressure.
                if(uzepmedirpolz) then
                  call empole1d_3b_PolarPerm_selfeng_bcast2
                else          
@@ -1087,34 +1087,43 @@ c              end if
          if (integrate .eq. 'NOSE-HOOVER') then
           do istep=1,nstep
             if(taskid.eq.master) then
+C Perform first step of Nose integration. 
              call nose_pt1(istep,dt,press)
 
              call gradient_setup
              call allocPermElec1
              call alloc3b_vdwlist_nolist
+         if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
+            else if(taskid.eq.master1) then
+         if(.not.allocated(dep3b_recip)) allocate (dep3b_recip(3,n))
+             call alloc_erecip
             end if
 
-            call alloc_erecip
 
+C Broadcast updated coordinates
             call mpi_bcast(x,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(y,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
             call mpi_bcast(z,n,mpi_real8,master,
      &      mpi_comm_world,ierr)
+C Broadcast updated Lattice for constatn-pressure dynamics
             call bcast_lattice
+C Initialize multipoles in the global coordinate frame
             call prep_pole
 
            if((taskid.ge.numtasks_emreal+2)
      &       .and.(taskid.lt.(numtasks_vdw2+numtasks_emreal+2)))then
-
+C Initialize or update vdW neighbor list
                call vlist_par
               if(firstload_vdw.and.(taskid.eq.numtasks_emreal+2)) then
+C Perform load balancing of vdW based on number of pairs to calculate
                 call vdw_load_balance_sizelist_half
               end if
            else if((taskid.gt.1).and.(taskid.lt.numtasks_emreal2+2))then
+C Initialize or update real-space electrostatic neighbor list
                call mlist_par
-C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHBORS OF EACH OUTER LOOP MOLECULE INDEX
+C Perform load balancing of r-space electrostatics based on number of pairs to calculate
                 if(firstload_emreal.and.(taskid.eq.master2)) then
                   if(longrangepoldir) then
                    call emreal_load_balance_sizelist
@@ -1128,6 +1137,7 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
 
             call mpi_barrier(mpi_comm_world,ierr)
 
+C Broadcast load balancing information for neighbor list (performed once)
             if(firstload_emreal) then
               firstload_emreal = .false.
               call mpi_bcast(numtasks_emreal2,1,mpi_integer,
@@ -1147,7 +1157,9 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
                call mpi_bcast(last_vdw2,numtasks_vdw,mpi_integer,
      &          numtasks_emreal+2,mpi_comm_world,ierr)
             end if
-
+C Calculate pairwise-additive contributions to energy, gradient, virial and 
+C save r-space permanent field and field gradient tensor for subsequent polarization gradient and virial.
+C Calculate induced dipoles due to direct polarization and corresponding energy in this step. 
       call grad_covemrecip_vandr_reduce_totfield_dEtensor_vir2no3b
 
             call mpi_bcast(uind,3*n,mpi_real8,master1,
@@ -1156,28 +1168,44 @@ C  PERFORM LOAD BALANCING FOR REAL-SPACE PERM ELEC BASED ON THE NUMBER OF NEIGHB
      &       mpi_comm_world,ierr)
             call mpi_bcast(ep3b,1,mpi_real8,master1,
      &       mpi_comm_world,ierr)
-
+C Calculate direct (non-mutual) polarization gradient and virial using saved r-space
+C tensor.
             call ewtotfieldsmooth2_gradient_polar_1body_dEtensor_mpioff
 
-           call mpi_bcast(em,1,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(dem,3*n,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(viremrecip,3*3,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
+C Ensure that all components of energy,gradient,virial have reached the master task
+C (Using non-blocking MPI collectives.)
 
-           if(uzepmedirpolz) then
-           call mpi_bcast(dep3b_recip,3*n,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(virep3b_recip,3*3,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(ep3b_recip,1,mpi_real8,master1,
-     &       mpi_comm_world,ierr)
-           call mpi_bcast(virep3b_recip_pt1,3*3,mpi_real8,master,
-     &       mpi_comm_world,ierr)
-           end if
+            if(taskid.eq.master1) then
+c            call mpi_waitall(6,reqs,stats2,ierr)
+             call mpi_wait(reqs1,stat,ierr)
+             call mpi_wait(reqs2,stat,ierr)
+             call mpi_wait(reqs3,stat,ierr)
+               if(uzepmedirpolz) then
+             call mpi_wait(reqs7,stat,ierr)
+             call mpi_wait(reqs8,stat,ierr)
+             call mpi_wait(reqs9,stat,ierr)
+               end if
+            else if(taskid.eq.master) then
+             call mpi_wait(reqs4,stat,ierr)
+             call mpi_wait(reqs5,stat,ierr)
+             call mpi_wait(reqs6,stat,ierr)
+               if(uzepmedirpolz) then
+             call mpi_wait(reqs10,stat,ierr)
+             call mpi_wait(reqs11,stat,ierr)
+             call mpi_wait(reqs12,stat,ierr)
+               end if
+            end if
+             call mpi_wait(reqs13,stat,ierr)
+             call mpi_wait(reqs14,stat,ierr)
+             call mpi_wait(reqs15,stat,ierr)
+             call mpi_wait(reqs16,stat,ierr)
+             call mpi_wait(reqs17,stat,ierr)
+             call mpi_wait(reqs18,stat,ierr)
+
 
             if(taskid.eq.master) then
+C Sum all contributions to energy, gradient, and virial. 
+C Perform second step of Nose integration and update temperature and pressure.
                if(uzepmedirpolz) then
                  call empole1d_3b_PolarPerm_selfeng_bcast2
                else
